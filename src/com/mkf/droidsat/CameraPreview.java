@@ -86,8 +86,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
         // Surface will be destroyed when we return, so stop the preview.
         // Because the CameraDevice object is not a shared resource, it's very
         // important to release it when the activity is paused.
-        mCamera.stopPreview();
-        this.inPreview=false;
+        this.turnOff();
         mCamera.release();
         mCamera = null;
     }
@@ -100,14 +99,14 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     }
     
     public void turnOff(){
-    	if (mCamera!=null) {
+    	if (mCamera!=null && this.inPreview) {
 			mCamera.stopPreview();
 			this.inPreview=false;
 		}
     }
     
     public void turnOn(){
-    	if (mCamera!=null) {
+    	if (mCamera!=null && !this.inPreview) {
 			mCamera.startPreview();
 			this.inPreview=true;
 		}
