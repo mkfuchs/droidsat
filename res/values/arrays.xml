@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string-array name="displayType">
+		<item>Full Sky</item>
+		<item>Video Backdrop</item>
+		<item>Stereographic</item>
+	</string-array>
+	<string-array name="forgroundColors">
+		<item>white</item>
+		<item>black</item>
+		<item>red</item>
+		<item>blue</item>
+		<item>green</item>
+	</string-array>
+	<string-array name="gridSizes">
+		<item>15</item>
+		<item>30</item>
+		<item>45</item>
+		<item>90</item>
+	</string-array>
+	<string-array name="textSizes">
+		<item>small</item>
+		<item>medium</item>
+		<item>large</item>
+	</string-array>
+	<string-array name="smoothing">
+		<item>low</item>
+		<item>medium</item>
+		<item>high</item>
+	</string-array>
+</resources>

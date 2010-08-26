@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory android:title="DroidSat Display Options">
+		<ListPreference android:entryValues="@array/displayType" android:entries="@array/displayType" android:defaultValue="Stereographic" android:summary="Display Mode" android:key="displayType"></ListPreference>
+		
+		<CheckBoxPreference android:summary="Red Screen"
+			android:key="redScreenOn" android:defaultValue="false"></CheckBoxPreference>
+		<CheckBoxPreference android:key="altAzOn"
+			android:defaultValue="true" android:summary="Show Alt/Az Grid"></CheckBoxPreference>
+		<CheckBoxPreference android:key="darkSatsOn" android:defaultValue="true" android:summary="Show non-sunlit satellites"></CheckBoxPreference>
+		<CheckBoxPreference android:key="lowSatsOn" android:defaultValue="true" android:summary="Show below horizon satellites"></CheckBoxPreference>
+	
+</PreferenceCategory>
+
+	<PreferenceCategory android:title="DroidSat Display Values">
+		
+		<ListPreference android:entries="@array/gridSizes"
+			android:key="altAzGridSize" android:entryValues="@array/gridSizes"
+			android:summary="alt/az grid size (degrees)" android:defaultValue="45" android:dependency="altAzOn"></ListPreference>
+		<ListPreference android:entries="@array/textSizes"
+			android:summary="text size" android:key="textSize"
+			android:entryValues="@array/textSizes" android:defaultValue="medium"></ListPreference>
+		<ListPreference android:entries="@array/forgroundColors"
+			android:summary="text colour" android:key="textColor"
+			android:entryValues="@array/forgroundColors" android:defaultValue="white"></ListPreference>
+		<ListPreference android:entries="@array/forgroundColors"
+			android:summary="satellite colour" android:key="satColor"
+			android:entryValues="@array/forgroundColors" android:defaultValue="white"></ListPreference>
+		<ListPreference android:entries="@array/forgroundColors"
+			android:summary="alt/az grid colour" android:key="altAzColor"
+			android:entryValues="@array/forgroundColors" android:defaultValue="white" android:dependency="altAzOn"></ListPreference>
+		<ListPreference android:entries="@array/smoothing"
+			android:key="altAzSmoothing"
+			android:entryValues="@array/smoothing" android:summary="alt/az grid quality" android:defaultValue="low" android:dependency="altAzOn"></ListPreference>
+		<ListPreference android:entries="@array/smoothing"
+			android:entryValues="@array/smoothing" android:summary="orientaion sensor and compass sensitivity" android:defaultValue="high" android:key="sensorSensitivity"></ListPreference>
+	
+</PreferenceCategory>
+
+</PreferenceScreen>
