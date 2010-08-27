@@ -101,6 +101,9 @@ public class StereoView extends View {
 	public void setPitch(float _pitch) {
 		if (!ShowSatellites.orientationLocked){
 			pitch = _pitch * -1 - 90;
+			if (pitch > 90 || pitch < -90){
+				pitch = pitch - (pitch - 90);
+			}
 			pitchRadians = (float) Math.toRadians(pitch);
 			cosTheta1 = Math.cos(pitchRadians);
 			sinTheta1 = Math.sin(pitchRadians);
@@ -487,15 +490,30 @@ public class StereoView extends View {
 	@Override
 	public boolean onTrackballEvent(MotionEvent event){
 		
+		float yDiff = event.getY() * event.getYPrecision() * trackballSpeed;
+		float xDiff = event.getX() * event.getXPrecision() * trackballSpeed;
+		
 		switch (event.getAction()){
 		case MotionEvent.ACTION_MOVE: 
-			trackballX += event.getX() * event.getXPrecision() * trackballSpeed; 
-			trackballY += event.getY()* event.getYPrecision() * trackballSpeed;
+			if (ShowSatellites.sensorOrientationOn) {
+				trackballX += xDiff;
+				trackballY += yDiff;
+			}
+			else{
+				setHeading(getHeading()+ xDiff);
+				setPitch(getPitch()*-1 + 90 +yDiff);
+				
+			}
 			break;
 		
 		case MotionEvent.ACTION_UP: 
-			trackballX = getWidth()/2;
-			trackballY = getHeight()/2;
+			if (ShowSatellites.sensorOrientationOn) {
+				trackballX = getWidth() / 2;
+				trackballY = getHeight() / 2;
+			}
+			else{
+				
+			}
 			break;
 		}
 		

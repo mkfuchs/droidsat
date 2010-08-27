@@ -143,6 +143,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	public static volatile float viewAngle = -1;
 	private static Context instance ;
 	private static volatile int sensorSensitivity = 10;
+	public static volatile boolean sensorOrientationOn = true;
 	
 	public static final String PREFS_NAME = "DroidSatPrefsFile";
 
@@ -167,7 +168,9 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		if (key.equals("redScreenOn")){
 			nightVis = sharedPreferences.getBoolean(key, false);
 		}
-		
+		else if (key.equals("sensorOrientationOn")){
+			sensorOrientationOn = sharedPreferences.getBoolean(key, true);
+		}	
 		else if (key.equals("displayType")){
 			String displayType = sharedPreferences.getString(key, "Stereographic");
 			if (displayType.equals("Full Sky")){
