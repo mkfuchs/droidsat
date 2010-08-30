@@ -170,6 +170,9 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		}
 		else if (key.equals("sensorOrientationOn")){
 			sensorOrientationOn = sharedPreferences.getBoolean(key, true);
+			if (sensorOrientationOn){
+				orientationLocked=false;
+			}
 		}	
 		else if (key.equals("displayType")){
 			String displayType = sharedPreferences.getString(key, "Stereographic");
@@ -180,6 +183,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			else if (displayType.equals("Video Backdrop")){
 				video=true;
 				fullSky=false;
+				sensorOrientationOn = true;
 			}
 			else {
 				video=false;
@@ -499,6 +503,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(this);
 		restoreValuesFromPreferences(prefs);
 		prefs.registerOnSharedPreferenceChangeListener(prefChangeListener);
+		updateOrientation(0,0,0);
 		
 	}
 
@@ -673,7 +678,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		if (video){
 			if (this.cameraPreview != null && !this.cameraPreview.inPreview && !fullSky) {
 				this.cameraPreview.turnOn();
-				StereoView.projectionRadius = stereoView.getWidth()/ Math.tan(Math.toRadians(cameraPreview.verticalViewAngle));
+				StereoView.projectionRadius = stereoView.getHeight()/ Math.tan(Math.toRadians(cameraPreview.verticalViewAngle));
 			}
 			else if (this.cameraPreview !=null && fullSky && this.cameraPreview.inPreview){
 				this.cameraPreview.turnOff();
@@ -684,15 +689,23 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 				this.cameraPreview.turnOff();
 			}
 		}
-		if (!sensorOrientationOn){
-			stereoView.invalidate();
+		
+		if (fullSky){
+			if (sensorOrientationOn){
+				stereoView.setPitch(-180);
+			}
+			else{
+				stereoView.setPitch(90);
+			}
 		}
+		stereoView.invalidate();
 	}
 	
 
 
 	private void updateOrientation(float _heading, float _pitch, float _roll) {
 				
+		
 		headingDiff=_heading-_prevHeading;
 		if (headingDiff > 180){
 			headingDiff=(360-headingDiff)*-1;
@@ -740,7 +753,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			}
 			
 			if (fullSky){
-				_pitch=180;
+				_pitch=-180;
 			}
 			
 			pitch = _pitch;
@@ -778,7 +791,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 
 	public boolean onTouchEvent(MotionEvent event){
 		
-		if (!video) {
+		if (!video && sensorOrientationOn) {
 			int action = event.getAction();
 			switch (action) {
 			case (MotionEvent.ACTION_DOWN):

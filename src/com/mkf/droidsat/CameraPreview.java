@@ -117,7 +117,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 			
 			try {
 				Camera.Parameters parameters = mCamera.getParameters();
-				Method getVerticalViewAngleMethod = parameters.getClass().getMethod("getVerticalViewAngle");
+				Method getVerticalViewAngleMethod = parameters.getClass().getMethod("getHorizontalViewAngle");
 				viewAngle = (Float)getVerticalViewAngleMethod.invoke(parameters, null);
 				
 			} catch (Exception e) {

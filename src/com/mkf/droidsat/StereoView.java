@@ -121,10 +121,14 @@ public class StereoView extends View {
 					pitch = _pitch;
 				}
 			}
-			pitchRadians = (float) Math.toRadians(pitch);
-			cosTheta1 = Math.cos(pitchRadians);
-			sinTheta1 = Math.sin(pitchRadians);
+			updatePitchRadians();
 		}
+	}
+
+	private void updatePitchRadians() {
+		pitchRadians = (float) Math.toRadians(pitch);
+		cosTheta1 = Math.cos(pitchRadians);
+		sinTheta1 = Math.sin(pitchRadians);
 	}
 
 	public float getPitch() {
@@ -252,7 +256,9 @@ public class StereoView extends View {
 		}
 		
 		if (ShowSatellites.fullSky){
-			StereoView.projectionRadius = displayWidth/4 - StereoView.textSize;
+			StereoView.projectionRadius = displayWidth/4 - StereoView.textSize;	
+			pitch=90;
+			updatePitchRadians();
 		}
 
 		updatingDisplay = true;
@@ -319,8 +325,13 @@ public class StereoView extends View {
 				trackballX = px;
 				trackballY = py;
 			}
-			canvas.drawCircle(trackballX, trackballY, reticleRadius,
-					latLonPaint);
+			if (ShowSatellites.sensorOrientationOn){
+				canvas.drawCircle(trackballX, trackballY, reticleRadius,latLonPaint);
+			}
+			else{
+				canvas.drawCircle(px, py, reticleRadius,latLonPaint);
+			}
+					
 		}
 
 		// canvas.rotate(-roll);
