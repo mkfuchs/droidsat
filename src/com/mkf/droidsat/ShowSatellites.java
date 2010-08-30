@@ -357,12 +357,13 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	 SensorEventListener(){
 	
 	
-	 public void onSensorChanged(SensorEvent event) {
-		 updateOrientation(event.values[0],
-			 event.values[1],
-			 event.values[2]);
-	 
-	 }
+		public void onSensorChanged(SensorEvent event) {
+			if (sensorOrientationOn) {
+				updateOrientation(event.values[0], event.values[1],
+						event.values[2]);
+			}
+
+		}
 
 	public void onAccuracyChanged(Sensor arg0, int arg1) {
 		// TODO Auto-generated method stub
@@ -682,6 +683,9 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			if (this.cameraPreview != null && this.cameraPreview.inPreview) {
 				this.cameraPreview.turnOff();
 			}
+		}
+		if (!sensorOrientationOn){
+			stereoView.invalidate();
 		}
 	}
 	

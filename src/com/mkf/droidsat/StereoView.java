@@ -89,6 +89,12 @@ public class StereoView extends View {
 	public void setHeading(float _heading) {
 		if (!ShowSatellites.orientationLocked){
 			heading = _heading;
+			if (heading > 360){
+				heading = heading - 360;
+			}
+			else if (heading < 0){
+				heading = 360 + heading;
+			}
 			headingRadians =(float)Math.toRadians(heading);
 			
 		}
@@ -99,10 +105,21 @@ public class StereoView extends View {
 	}
 
 	public void setPitch(float _pitch) {
-		if (!ShowSatellites.orientationLocked){
-			pitch = _pitch * -1 - 90;
-			if (pitch > 90 || pitch < -90){
-				pitch = pitch - (pitch - 90);
+		if (!ShowSatellites.orientationLocked) {
+			if (ShowSatellites.sensorOrientationOn) {
+				pitch = _pitch * -1 - 90;
+			} else {
+				if (ShowSatellites.fullSky){
+					pitch = 90;
+				}
+				else if (pitch > 90) {
+					pitch = 90;
+				} else if (pitch < -90) {
+					pitch = -90;
+				}
+				else {
+					pitch = _pitch;
+				}
 			}
 			pitchRadians = (float) Math.toRadians(pitch);
 			cosTheta1 = Math.cos(pitchRadians);
@@ -500,8 +517,9 @@ public class StereoView extends View {
 				trackballY += yDiff;
 			}
 			else{
-				setHeading(getHeading()+ xDiff);
-				setPitch(getPitch()*-1 + 90 +yDiff);
+				setHeading(getHeading() + xDiff);
+				setPitch(getPitch() - yDiff);
+				this.invalidate();
 				
 			}
 			break;
