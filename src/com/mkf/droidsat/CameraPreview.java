@@ -30,7 +30,7 @@ import java.lang.reflect.Method;
 class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     SurfaceHolder mHolder;
     Camera mCamera;
-    volatile float verticalViewAngle = 43;
+    volatile float verticalViewAngle = 37.5f;
     volatile boolean inPreview = false;
     
     public CameraPreview(Context context) {
@@ -124,7 +124,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 				Log.d(this.getClass().getName(),"Exception getting view angle");;
 			}
 		}
-		return viewAngle;
+		return 37.5f;
 	}
 
 }

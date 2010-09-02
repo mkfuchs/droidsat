@@ -125,7 +125,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	static volatile boolean loadingTle=false;
 	static volatile boolean gettingTles=false;
 	private static volatile boolean nightVis=false;
-	private static volatile boolean video=false;
+	public static volatile boolean video=false;
 	private static volatile boolean forceLoadTle = false;
 	public static volatile double magDeclination;
 	private static volatile boolean threadSuspended = false;
@@ -183,7 +183,6 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			else if (displayType.equals("Video Backdrop")){
 				video=true;
 				fullSky=false;
-				sensorOrientationOn = true;
 			}
 			else {
 				video=false;
@@ -362,7 +361,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	
 	
 		public void onSensorChanged(SensorEvent event) {
-			if (sensorOrientationOn) {
+			if (sensorOrientationOn || video) {//always use sensor orientation when video is on
 				updateOrientation(event.values[0], event.values[1],
 						event.values[2]);
 			}
@@ -425,16 +424,17 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		satellites = (Spinner) this.findViewById(R.id.satellites);
 		fov = (ZoomControls) this.findViewById(R.id.fov);
+		//once we get fov for video correct, disallow zoom when video on
 		fov.setOnZoomOutClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				if ( !video && !fullSky &&StereoView.projectionRadius >=20){
+				if ( /*!video && */!fullSky &&StereoView.projectionRadius >=20){
 					StereoView.projectionRadius = StereoView.projectionRadius - 20;
 				}
 			}
 		});
 		fov.setOnZoomInClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				if (!video && !fullSky && StereoView.projectionRadius <=1000){
+				if (/*!video && */!fullSky && StereoView.projectionRadius <=1000){
 					StereoView.projectionRadius = StereoView.projectionRadius + 20;
 				}
 			}
@@ -678,7 +678,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		if (video){
 			if (this.cameraPreview != null && !this.cameraPreview.inPreview && !fullSky) {
 				this.cameraPreview.turnOn();
-				StereoView.projectionRadius = stereoView.getHeight()/ Math.tan(Math.toRadians(cameraPreview.verticalViewAngle));
+				StereoView.projectionRadius = stereoView.getWidth()/ Math.tan(Math.toRadians(cameraPreview.verticalViewAngle));
 			}
 			else if (this.cameraPreview !=null && fullSky && this.cameraPreview.inPreview){
 				this.cameraPreview.turnOff();

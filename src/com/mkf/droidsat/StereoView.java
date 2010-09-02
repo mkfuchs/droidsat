@@ -106,7 +106,7 @@ public class StereoView extends View {
 
 	public void setPitch(float _pitch) {
 		if (!ShowSatellites.orientationLocked) {
-			if (ShowSatellites.sensorOrientationOn) {
+			if (ShowSatellites.sensorOrientationOn ||ShowSatellites.video) {
 				pitch = _pitch * -1 - 90;
 			} else {
 				if (ShowSatellites.fullSky){
@@ -325,7 +325,7 @@ public class StereoView extends View {
 				trackballX = px;
 				trackballY = py;
 			}
-			if (ShowSatellites.sensorOrientationOn){
+			if (ShowSatellites.sensorOrientationOn || ShowSatellites.video){
 				canvas.drawCircle(trackballX, trackballY, reticleRadius,latLonPaint);
 			}
 			else{
@@ -523,7 +523,7 @@ public class StereoView extends View {
 		
 		switch (event.getAction()){
 		case MotionEvent.ACTION_MOVE: 
-			if (ShowSatellites.sensorOrientationOn) {
+			if (ShowSatellites.sensorOrientationOn || ShowSatellites.video) {
 				trackballX += xDiff;
 				trackballY += yDiff;
 			}
@@ -536,7 +536,7 @@ public class StereoView extends View {
 			break;
 		
 		case MotionEvent.ACTION_UP: 
-			if (ShowSatellites.sensorOrientationOn) {
+			if (ShowSatellites.sensorOrientationOn || ShowSatellites.video) {
 				trackballX = getWidth() / 2;
 				trackballY = getHeight() / 2;
 			}
