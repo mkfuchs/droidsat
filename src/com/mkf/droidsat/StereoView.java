@@ -284,8 +284,14 @@ public class StereoView extends View {
 						if (stereoCoord.x >= 0 && stereoCoord.x <= displayWidth
 								&& stereoCoord.y >= 0
 								&& stereoCoord.y <= displayHeight) {
-							if ((Math.abs(trackballX - stereoCoord.x) <= reticleRadius)
+							if (!ShowSatellites.sensorOrientationOn && (Math.abs(trackballX - stereoCoord.x) <= reticleRadius)
 									&& (Math.abs(trackballY - stereoCoord.y) <= reticleRadius)) {
+
+								target = satPos.name;
+								targetPaint = satPaint;
+							}
+							else if (ShowSatellites.sensorOrientationOn && (Math.abs(px - stereoCoord.x) <= reticleRadius)
+									&& (Math.abs(py - stereoCoord.y) <= reticleRadius)) {
 
 								target = satPos.name;
 								targetPaint = satPaint;
