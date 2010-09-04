@@ -170,9 +170,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		}
 		else if (key.equals("sensorOrientationOn")){
 			sensorOrientationOn = sharedPreferences.getBoolean(key, true);
-			if (sensorOrientationOn){
-				orientationLocked=false;
-			}
+			orientationLocked=false;
 		}	
 		else if (key.equals("displayType")){
 			String displayType = sharedPreferences.getString(key, "Stereographic");
