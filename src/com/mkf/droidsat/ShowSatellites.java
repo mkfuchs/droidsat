@@ -422,17 +422,16 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		satellites = (Spinner) this.findViewById(R.id.satellites);
 		fov = (ZoomControls) this.findViewById(R.id.fov);
-		//once we get fov for video correct, disallow zoom when video on
 		fov.setOnZoomOutClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				if ( /*!video && */!fullSky &&StereoView.projectionRadius >=20){
+				if ( !video && !fullSky &&StereoView.projectionRadius >=20){
 					StereoView.projectionRadius = StereoView.projectionRadius - 20;
 				}
 			}
 		});
 		fov.setOnZoomInClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				if (/*!video && */!fullSky && StereoView.projectionRadius <=1000){
+				if (!video && !fullSky && StereoView.projectionRadius <=1000){
 					StereoView.projectionRadius = StereoView.projectionRadius + 20;
 				}
 			}
