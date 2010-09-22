@@ -146,6 +146,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	public static volatile boolean sensorOrientationOn = true;
 	
 	public static final String PREFS_NAME = "DroidSatPrefsFile";
+	public static volatile long displayTime;
 
 
 
@@ -593,6 +594,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 					else{
 						station.SetUTanyTime(currentSimTime);
 					}
+					displayTime=currentSimTime;
 					Satellite.showAllSats(null, station, satellitePositions);
 				}
 
