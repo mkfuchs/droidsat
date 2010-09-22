@@ -16,9 +16,14 @@ import android.content.Context;
 import android.graphics.*;
 import android.graphics.Paint.Align;
 import android.view.*;
+import android.text.format.DateFormat;
+import android.text.format.Time;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.content.res.Resources;
+
+import java.sql.Date;
+import java.text.*;
 
 public class StereoView extends View {
 
@@ -73,6 +78,8 @@ public class StereoView extends View {
 	
 	public static volatile int trackballSpeed = 2;
 	public static volatile float textSize = 16;
+	private static java.text.DateFormat df = java.text.DateFormat.getTimeInstance();
+	private static String displayTimeString;
 	
 	
 
@@ -165,6 +172,7 @@ public class StereoView extends View {
 		
 
 
+
 		Resources r = this.getResources();
 		
 
@@ -250,6 +258,7 @@ public class StereoView extends View {
 		int px = displayWidth / 2;
 		int py = displayHeight / 2;
 		int i;
+		displayTimeString = df.format(new Date(ShowSatellites.displayTime));
 
 		if (textPaint.getTextSize() != textSize) {
 			textPaint.setTextSize(textSize);
@@ -356,6 +365,11 @@ public class StereoView extends View {
 					0 + 6 * textHeight, textPaint);
 			canvas.drawText("and m mccants tle files", 0, 0 + 7 * textHeight,
 					textPaint);
+		}
+		else {
+			canvas.drawText(displayTimeString,displayWidth - displayTimeString.length() * textHeight/2, 0 + textHeight,
+					textPaint);
+			
 		}
 
 		drawHorizonLabels(canvas, displayHeight, displayWidth);
