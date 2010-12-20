@@ -147,6 +147,10 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	
 	public static final String PREFS_NAME = "DroidSatPrefsFile";
 	public static volatile long displayTime;
+	
+	private static final float NS2S = 1.0f / 1000000000.0f;
+    private float timestamp;
+    float angle[] = {0.0f, 0.0f, 0.0f};
 
 
 
@@ -362,10 +366,12 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		public void onSensorChanged(SensorEvent event) {
 			if (sensorOrientationOn || video) {//always use sensor orientation when video is on
 				updateOrientation(event.values[0], event.values[1],
-						event.values[2]);
+						event.values[2]);				
 			}
 
 		}
+		
+		
 
 	public void onAccuracyChanged(Sensor arg0, int arg1) {
 		// TODO Auto-generated method stub
@@ -374,6 +380,17 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 
 			
 	 };
+	 
+     public void onSensorChangedzzz(SensorEvent event)
+     {
+          if (timestamp != 0) {
+              final float dT = (event.timestamp - timestamp) * NS2S;
+              angle[0] += event.values[0] * dT;
+              angle[1] += event.values[1] * dT;
+              angle[2] += event.values[2] * dT;
+          }
+          timestamp = event.timestamp;
+     }	 
 
 	
 	@Override
@@ -788,17 +805,17 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		
 	}
 
-	public boolean onTouchEvent(MotionEvent event){
-		
-		if (!video && sensorOrientationOn) {
-			int action = event.getAction();
-			switch (action) {
-			case (MotionEvent.ACTION_DOWN):
-				toggleLock();
-			}
-		}
-		return super.onTouchEvent(event);
-	}
+//	public boolean onTouchEvent(MotionEvent event){
+//		
+//		if (!video && sensorOrientationOn) {
+//			int action = event.getAction();
+//			switch (action) {
+//			case (MotionEvent.ACTION_DOWN):
+//				toggleLock();
+//			}
+//		}
+//		return super.onTouchEvent(event);
+//	}
 
 	private void toggleLock() {
 		orientationLocked = !orientationLocked;

@@ -9,21 +9,18 @@ along with this programme; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 */
 
-import com.mkf.droidsat.R;
+import java.sql.Date;
 
 import uk.me.chiandh.Sputnik.SatellitePosition;
 import android.content.Context;
-import android.graphics.*;
+import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Paint.Align;
-import android.view.*;
-import android.text.format.DateFormat;
-import android.text.format.Time;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.content.res.Resources;
-
-import java.sql.Date;
-import java.text.*;
+import android.view.MotionEvent;
+import android.view.View;
 
 public class StereoView extends View {
 
@@ -75,6 +72,10 @@ public class StereoView extends View {
 	
 	private float trackballX = -100;
 	private float trackballY = -100;
+	
+	
+	private float prevXdiff = 0;
+	private float prevYdiff = 0;
 	
 	public static volatile int trackballSpeed = 2;
 	public static volatile float textSize = 16;
@@ -534,6 +535,7 @@ public class StereoView extends View {
 //				* Math.cos(theta) * Math.cos(lambda - lambda0)))
 //				+ getWidth() / 2;
 	}
+	
 
 	@Override
 	public boolean onTrackballEvent(MotionEvent event){
@@ -561,6 +563,60 @@ public class StereoView extends View {
 				trackballY = getHeight() / 2;
 			}
 			else{
+				
+			}
+			break;
+		}
+		
+		
+		return true;
+		
+	}
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event){
+		
+		float yDiff =  event.getY();
+		float xDiff = event.getX();
+		
+		switch (event.getAction()){
+		case MotionEvent.ACTION_MOVE: 
+			if (ShowSatellites.sensorOrientationOn || ShowSatellites.video) {
+				trackballX = event.getX();
+				trackballY = event.getY();
+			}
+			else{
+				setHeading(getHeading() - ((xDiff - prevXdiff)/(float)(projectionRadius/40)));
+				setPitch(getPitch() + ((yDiff - prevYdiff)/(float)(projectionRadius/40)));
+				this.invalidate();
+				prevXdiff = xDiff;
+				prevYdiff = yDiff;
+			}
+			break;
+		
+		case MotionEvent.ACTION_DOWN: 
+			if (ShowSatellites.sensorOrientationOn || ShowSatellites.video) {
+				
+			}
+			else{
+				prevYdiff = yDiff;
+				prevXdiff = xDiff;
+				this.invalidate();
+				
+				
+				
+			}
+			break;
+		case MotionEvent.ACTION_UP: 
+			if (ShowSatellites.sensorOrientationOn || ShowSatellites.video) {
+				
+			}
+			else{
+				prevYdiff = yDiff;
+				prevXdiff = xDiff;
+				this.invalidate();
+				
+				
 				
 			}
 			break;

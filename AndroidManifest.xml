@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.mkf.droidsat"
-      android:versionCode="6" android:versionName="2.0">
+      android:versionCode="7" android:versionName="2.1">
     <application android:icon="@drawable/droidsat" 
     			 android:label="@string/app_name" 
-    			 android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:debuggable="false">
+    			 android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:debuggable="true">
         <activity android:name=".ShowSatellites"
                   android:label="@string/app_name"
                   android:screenOrientation="portrait"
@@ -17,7 +17,7 @@
         </activity>
         <activity android:name=".EditPreferences" android:label="Edit Preferences"/>
     </application>
-    <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="8"/>
+    <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="9"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
    <uses-permission android:name="android.permission.INTERNET"/>
    <uses-permission android:name="android.permission.CAMERA"/>

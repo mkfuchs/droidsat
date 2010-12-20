@@ -112,7 +112,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 		}
     }
 	public float getVerticalViewAngle() {
-		float viewAngle = 43; //default value
+		float viewAngle = 37.5f; //default value
 		if (VERSION.SDK_INT >= 8){
 			
 			try {
@@ -124,7 +124,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 				Log.d(this.getClass().getName(),"Exception getting view angle");;
 			}
 		}
-		return 37.5f;
+		return viewAngle;
 	}
 
 }
