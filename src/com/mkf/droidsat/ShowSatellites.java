@@ -14,35 +14,27 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-
 import java.io.InputStream;
-
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
-
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import com.mkf.droidsat.TSAGeoMag;
-import com.mkf.droidsat.R;
 
-
-import android.util.Log;
-import android.view.Menu;
+import uk.me.chiandh.Lib.Hmelib;
+import uk.me.chiandh.Sputnik.Satellite;
+import uk.me.chiandh.Sputnik.SatellitePosition;
+import uk.me.chiandh.Sputnik.Telescope;
 import android.app.Activity;
-
-
 import android.content.Context;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -50,13 +42,13 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Build.VERSION;
-
 import android.preference.PreferenceManager;
+import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.MenuItem.OnMenuItemClickListener;
@@ -69,10 +61,6 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.ZoomButtonsController;
 import android.widget.ZoomControls;
-import uk.me.chiandh.Lib.Hmelib;
-import uk.me.chiandh.Sputnik.Satellite;
-import uk.me.chiandh.Sputnik.SatellitePosition;
-import uk.me.chiandh.Sputnik.Telescope;
 
 public class ShowSatellites extends Activity implements ZoomButtonsController.OnZoomListener {
 	/** Called when the activity is first created. */
@@ -147,12 +135,6 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	
 	public static final String PREFS_NAME = "DroidSatPrefsFile";
 	public static volatile long displayTime;
-	
-	private static final float NS2S = 1.0f / 1000000000.0f;
-    private float timestamp;
-    float angle[] = {0.0f, 0.0f, 0.0f};
-
-
 
 	
 	private static OnSharedPreferenceChangeListener prefChangeListener = new OnSharedPreferenceChangeListener() {
@@ -381,17 +363,6 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			
 	 };
 	 
-     public void onSensorChangedzzz(SensorEvent event)
-     {
-          if (timestamp != 0) {
-              final float dT = (event.timestamp - timestamp) * NS2S;
-              angle[0] += event.values[0] * dT;
-              angle[1] += event.values[1] * dT;
-              angle[2] += event.values[2] * dT;
-          }
-          timestamp = event.timestamp;
-     }	 
-
 	
 	@Override
 	protected void onRestart(){
@@ -805,17 +776,6 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		
 	}
 
-//	public boolean onTouchEvent(MotionEvent event){
-//		
-//		if (!video && sensorOrientationOn) {
-//			int action = event.getAction();
-//			switch (action) {
-//			case (MotionEvent.ACTION_DOWN):
-//				toggleLock();
-//			}
-//		}
-//		return super.onTouchEvent(event);
-//	}
 
 	private void toggleLock() {
 		orientationLocked = !orientationLocked;
