@@ -583,7 +583,8 @@ public class StereoView extends View {
 		case MotionEvent.ACTION_MOVE: 
 			if (ShowSatellites.sensorOrientationOn || ShowSatellites.video) {
 				trackballX = event.getX();
-				trackballY = event.getY();
+				trackballY = event.getY() - 75;
+				this.invalidate();
 			}
 			else{
 				setHeading(getHeading() - ((xDiff - prevXdiff)/(float)(projectionRadius/40)));
@@ -591,6 +592,7 @@ public class StereoView extends View {
 				this.invalidate();
 				prevXdiff = xDiff;
 				prevYdiff = yDiff;
+				this.invalidate();
 			}
 			break;
 		
