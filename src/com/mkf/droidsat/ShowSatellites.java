@@ -972,87 +972,90 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 }
 
 
-	private void getSatDataFromNet(String droidSatDir) {
+private void getSatDataFromNet(String droidSatDir) {
 
-		String prefix = "http://www.celestrak.net/NORAD/elements/";
-		final int BUFFER = 16 * 1024;
+	String prefix = "http://www.celestrak.net/NORAD/elements/";
+	final int BUFFER = 16 * 1024;
 
-		try {
-			
-			//standard celestrak tle's
-			refreshTleDir();
-			for (String tle : celestrakTles) {
+	try {
 
-				URL satDataUrl = new URL(prefix + tle + ".txt");
-				Log.d(this.getClass().getName(),"gettting file "+ satDataUrl);
-
-				InputStream is = satDataUrl.openStream();
-
-				FileOutputStream fos = new FileOutputStream(new File(tleDir, tle + ".txt"));
-				int len;
-		        while ((len = is.read(tleBuf)) > 0) {
-		            fos.write(tleBuf, 0, len);
-		        }
-				is.close();
-				fos.close();
-			}
-			
-			//amateur satellite org's tle
-			URL amsatDataUrl = new URL("http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt");
-			InputStream is = amsatDataUrl.openStream();
-
-			FileOutputStream fos = new FileOutputStream(new File(tleDir, "nasabare.txt"));
-			int len;
-	        while ((len = is.read(tleBuf)) > 0) {
-	            fos.write(tleBuf, 0, len);
-	        }
-			is.close();
-			fos.close();
-			
-			//mike mccant's classified satellite tle
-			URL mcCantUrl = new URL("http://www.io.com/~mmccants/tles/classfd.zip");
-			is = mcCantUrl.openStream();
-
-			fos = new FileOutputStream(new File(tleDir, "classfd.zip"));
-
-	        while ((len = is.read(tleBuf)) > 0) {
-	            fos.write(tleBuf, 0, len);
-	        }
-			is.close();
-			fos.close();
-			
-			BufferedOutputStream dest = null;
-			
-			
-			FileInputStream fis = new FileInputStream(new File(tleDir,"classfd.zip"));
-
-			ZipInputStream zis = new ZipInputStream(
-					new BufferedInputStream(fis,BUFFER));
-			ZipEntry entry;
-			while ((entry = zis.getNextEntry()) != null) {
-				System.out.println("Extracting: " + entry);
-				int count;
-				byte data[] = new byte[BUFFER];
-				// write the files to the disk
-				fos = new FileOutputStream(new File(tleDir,entry.getName()));
-				dest = new BufferedOutputStream(fos, BUFFER);
-				while ((count = zis.read(data, 0, BUFFER)) != -1) {
-					dest.write(data, 0, count);
-				}
-				dest.flush();
-				dest.close();
-			}
-			zis.close();
-			new File(tleDir,"classfd.zip").delete();
-			
-		} catch (Exception e) {
-			System.out.println("error in file or url");
-
-		}
-		
+		// standard celestrak tle's
 		refreshTleDir();
+		for (String tle : celestrakTles) {
+
+			URL satDataUrl = new URL(prefix + tle + ".txt");
+			Log.d(this.getClass().getName(), "gettting file " + satDataUrl);
+
+			InputStream is = satDataUrl.openStream();
+
+			FileOutputStream fos = new FileOutputStream(new File(tleDir,
+					tle + ".txt"));
+			int len;
+			while ((len = is.read(tleBuf)) > 0) {
+				fos.write(tleBuf, 0, len);
+			}
+			is.close();
+			fos.close();
+		}
+
+		// amateur satellite org's tle
+		URL amsatDataUrl = new URL(
+		"http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt");
+		InputStream is = amsatDataUrl.openStream();
+
+		FileOutputStream fos = new FileOutputStream(new File(tleDir,
+				"nasabare.txt"));
+		int len;
+		while ((len = is.read(tleBuf)) > 0) {
+			fos.write(tleBuf, 0, len);
+		}
+		is.close();
+		fos.close();
+
+		// mike mccant's classified satellite tle
+		URL mcCantUrl = new URL(
+		"http://www.io.com/~mmccants/tles/classfd.zip");
+		is = mcCantUrl.openStream();
+
+		fos = new FileOutputStream(new File(tleDir, "classfd.zip"));
+
+		while ((len = is.read(tleBuf)) > 0) {
+			fos.write(tleBuf, 0, len);
+		}
+		is.close();
+		fos.close();
+
+		BufferedOutputStream dest = null;
+
+		FileInputStream fis = new FileInputStream(new File(tleDir,
+				"classfd.zip"));
+
+		ZipInputStream zis = new ZipInputStream(new BufferedInputStream(
+				fis, BUFFER));
+		ZipEntry entry;
+		while ((entry = zis.getNextEntry()) != null) {
+			System.out.println("Extracting: " + entry);
+			int count;
+			byte data[] = new byte[BUFFER];
+			// write the files to the disk
+			fos = new FileOutputStream(new File(tleDir, entry.getName()));
+			dest = new BufferedOutputStream(fos, BUFFER);
+			while ((count = zis.read(data, 0, BUFFER)) != -1) {
+				dest.write(data, 0, count);
+			}
+			dest.flush();
+			dest.close();
+		}
+		zis.close();
+		new File(tleDir, "classfd.zip").delete();
+
+	} catch (Exception e) {
+		System.out.println("error in file or url");
 
 	}
+
+	refreshTleDir();
+}
 
 	private void getSatZipDataFromNet() {
 
