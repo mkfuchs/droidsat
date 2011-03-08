@@ -26,6 +26,7 @@ import java.util.zip.ZipInputStream;
 import uk.me.chiandh.Lib.Hmelib;
 import uk.me.chiandh.Sputnik.Satellite;
 import uk.me.chiandh.Sputnik.SatellitePosition;
+import uk.me.chiandh.Sputnik.SatelliteTrack;
 import uk.me.chiandh.Sputnik.Telescope;
 import android.app.Activity;
 import android.content.Context;
@@ -54,6 +55,7 @@ import android.view.View;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -88,6 +90,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	public static volatile ArrayList<SatellitePosition> satellitePositions = new ArrayList<SatellitePosition>();
 	private static Satellite satellite = new Satellite();
 	private static Telescope station = new Telescope();
+	public static volatile SatelliteTrack satelliteTrack;
 	private Resources droidSatResources = null;
 	private InputStream satFileStream = null;
 	private ArrayAdapter<SatellitePosition> satPosnsAdapter;
@@ -410,6 +413,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		cameraPreview = (CameraPreview) this.findViewById(R.id.cameraPreview);
 		sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		satellites = (Spinner) this.findViewById(R.id.satellites);
+		
 		fov = (ZoomControls) this.findViewById(R.id.fov);
 		fov.setOnZoomOutClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -613,6 +617,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 
 			satPosnsAdapter = new ArrayAdapter<SatellitePosition>(this,
 					android.R.layout.simple_spinner_item, satellitePositions);
+			satPosnsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
 			satellites.setAdapter(satPosnsAdapter);
 			satellites.setSelection(0);
 			selectedSatPosn = (SatellitePosition) satellites.getSelectedItem();

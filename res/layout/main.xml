@@ -17,8 +17,7 @@
 	<Spinner android:id="@+id/satellites" 
 		android:layout_width="fill_parent" 
 		android:layout_height="wrap_content"
-		android:layout_above="@+id/fov"/>
-
+		android:layout_above="@+id/fov" android:longClickable="true"/>
 	<ZoomControls android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" 
 		android:id="@+id/fov" 

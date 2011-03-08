@@ -1,6 +1,5 @@
 package uk.me.chiandh.Sputnik;
 
-import uk.me.chiandh.Lib.SDP4;
 
 public class SatellitePosition {
 	public String name;
@@ -11,6 +10,7 @@ public class SatellitePosition {
 	public double elevation;
 	public double range;
 	public Satellite sat;
+	public long positionTime;
 	
 	public SatellitePosition(String theName, String theDisplayString, 
 			double theAzimuth, double theAzRadians, double theElRadians, double theElevation, double theRange, Satellite theSatellite){
