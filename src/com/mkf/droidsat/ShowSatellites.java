@@ -151,8 +151,8 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		}
 
 	};
-	private static Double manualLat;
-	private static Double manualLon;
+	private static Double manualLat = 49d;
+	private static Double manualLon = -121d;
 
 	private static void setPreference(SharedPreferences sharedPreferences,
 			String key) {
@@ -328,14 +328,14 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		}
 		
 		else if (key.equals("sensorSensitivity")){
-			String textSize = sharedPreferences.getString(key, "low");
-			if (textSize.equals("low")){
+			String sensitivity = sharedPreferences.getString(key, "low");
+			if (sensitivity.equals("low")){
 				sensorSensitivity= 15;
 			}
-			else if (textSize.equals("medium")){
+			else if (sensitivity.equals("medium")){
 				sensorSensitivity= 10;
 			}
-			else if (textSize.equals("high")){
+			else if (sensitivity.equals("high")){
 				sensorSensitivity= 5;
 			}
 			
@@ -354,6 +354,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 				if (90 < manualLat || -90 > manualLat){
 					throw (new Exception());
 				}
+				forceLoadTle = true;
 			}
 			catch (Exception e){
 				manualLat = 0d;
@@ -366,6 +367,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 				if (180 < manualLon || -180 > manualLon){
 					throw (new Exception());
 				}
+				forceLoadTle = true;
 			}
 			catch (Exception e){
 				manualLon = 0d;
