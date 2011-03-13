@@ -8,18 +8,19 @@
 </style>
 <style name="StandardSpinner" parent="@android:style/Widget.Spinner">
 <item name="android:textColor">#FF0000</item>
-    <item name="android:background">@drawable/droidsat</item>
+    
 </style>
 
 <style name="StandardSpinnerItem" parent="@android:style/Widget.TextView.SpinnerItem">
     <item name="android:textColor">#FF0000</item>
-    <item name="android:background">@drawable/droidsat</item>
+    
     <item name="android:gravity">center_vertical|center_horizontal</item>
     
 </style>
 
 <style name="StandardSpinnerDropDownItem" parent="@android:style/Widget.DropDownItem.Spinner">
     <item name="android:textColor">#FF0000</item>
-    <item name="android:background">@drawable/droidsat</item>
+    
+
 </style>
 </resources>

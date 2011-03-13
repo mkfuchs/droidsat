@@ -77,6 +77,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	CameraPreview cameraPreview;
 	LocationManager locationManager;
 	static Location location;
+	static boolean manualLocation = false;
 	static int latitude = 0;
 	static int longitude = 0;
 	static double lat=49;
@@ -150,6 +151,8 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		}
 
 	};
+	private static Double manualLat;
+	private static Double manualLon;
 
 	private static void setPreference(SharedPreferences sharedPreferences,
 			String key) {
@@ -339,6 +342,36 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			StereoView.textHeight = (int) StereoView.textSize;
 		}
 		
+		else if (key.equals("manualLocation")){
+			manualLocation = sharedPreferences.getBoolean(key, false);
+			forceLoadTle = true;
+			
+		}
+		
+		else if (key.equals("manualLat")){
+			try{
+				manualLat = Double.valueOf(sharedPreferences.getString(key, "49"));
+				if (90 < manualLat || -90 > manualLat){
+					throw (new Exception());
+				}
+			}
+			catch (Exception e){
+				manualLat = 0d;
+			}
+		}
+		
+		else if (key.equals("manualLon")){
+			try{
+				manualLon = Double.valueOf(sharedPreferences.getString(key, "-121"));
+				if (180 < manualLon || -180 > manualLon){
+					throw (new Exception());
+				}
+			}
+			catch (Exception e){
+				manualLon = 0d;
+			}
+		}
+		
 
 	}
 
@@ -430,12 +463,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			}
 		});
 		tintPane = (ImageView) this.findViewById(R.id.tintPane);
-		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		location = locationManager
-				.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		if (location == null)
-			location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
+		getLocation();
 		if (station == null){
 			station = new Telescope();
 		}
@@ -495,6 +523,30 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		prefs.registerOnSharedPreferenceChangeListener(prefChangeListener);
 		updateOrientation(0,0,0);
 		
+	}
+	private void getLocation() {
+		
+		if (manualLocation){
+			location.setLatitude(manualLat);
+			location.setLongitude(manualLon);
+			location.setAltitude(0);
+		}
+		else {
+			if (null == locationManager) {
+				locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			}
+			if (null != locationManager) {
+
+				location = locationManager
+						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+				if (location == null)
+					location = locationManager
+							.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+				if (location == null)
+					location = locationManager
+							.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+			}
+		}
 	}
 
 	private void refreshTleDir() {
@@ -809,6 +861,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		station.Init();
 		station.SetUTSystem();
 		
+		getLocation();
 		if (location == null){
 			lat=0; lon=0; alt=0;
 		}

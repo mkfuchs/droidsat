@@ -34,8 +34,14 @@
 			android:key="altAzSmoothing"
 			android:entryValues="@array/smoothing" android:summary="alt/az grid quality" android:defaultValue="low" android:dependency="altAzOn"></ListPreference>
 		<ListPreference android:entries="@array/smoothing"
-			android:entryValues="@array/smoothing" android:summary="orientaion sensor and compass sensitivity" android:defaultValue="high" android:key="sensorSensitivity"></ListPreference>
+			android:entryValues="@array/smoothing" android:summary="orientation sensor and compass sensitivity" android:defaultValue="high" android:key="sensorSensitivity"></ListPreference>
 	
+</PreferenceCategory>
+
+<PreferenceCategory android:title="Location">
+	<CheckBoxPreference android:summary="Enter location manually" android:key="manualLocation"></CheckBoxPreference>
+	<EditTextPreference android:summary="Latitude" android:key="manualLat" android:dependency="manualLocation"></EditTextPreference>
+	<EditTextPreference android:key="manualLon" android:summary="Longitude" android:dependency="manualLocation"></EditTextPreference>
 </PreferenceCategory>
 
 </PreferenceScreen>
