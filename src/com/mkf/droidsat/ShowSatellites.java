@@ -671,7 +671,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 
 			satPosnsAdapter = new ArrayAdapter<SatellitePosition>(this,
 					android.R.layout.simple_spinner_item, satellitePositions);
-			satPosnsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
+			satPosnsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 			satellites.setAdapter(satPosnsAdapter);
 			satellites.setSelection(0);
 			selectedSatPosn = (SatellitePosition) satellites.getSelectedItem();

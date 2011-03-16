@@ -36,7 +36,8 @@ public class StereoView extends View {
 	public static Paint notSunlitPaint;
 	public static Paint latLonPaint;
 	public static int textHeight;
-	private String target;
+	private static String target;
+	private static SatellitePosition targetSatPos;
 	public static int semiWidthDegrees = 90;
 	public static int semiHeightDegrees = 45;
 	private int reticleRadius = 15;
@@ -259,6 +260,7 @@ public class StereoView extends View {
 		int px = displayWidth / 2;
 		int py = displayHeight / 2;
 		int i;
+		
 		displayTimeString = df.format(new Date(ShowSatellites.displayTime));
 
 		if (textPaint.getTextSize() != textSize) {
@@ -299,12 +301,15 @@ public class StereoView extends View {
 
 								target = satPos.name;
 								targetPaint = satPaint;
+								targetSatPos = satPos;
+								
 							}
 							else if ((Math.abs(trackballX - stereoCoord.x) <= reticleRadius)
 									&& (Math.abs(trackballY - stereoCoord.y) <= reticleRadius)) {
 
 								target = satPos.name;
 								targetPaint = satPaint;
+								targetSatPos = satPos;
 							}
 
 							if (satPos.sat.itsIsSunlit == 1) {
@@ -351,25 +356,28 @@ public class StereoView extends View {
 		}
 
 		// canvas.rotate(-roll);
-		canvas.drawText("Az " + (int) heading + " ("
-				+ (int) ShowSatellites.magDeclination + ")", 0, 0 + textHeight,
+		canvas.drawText("Az/El " + String.format("%3d", (int)heading) + " " + String.format("%-2d", (int)pitch), displayWidth - 18 * textHeight/2, 0 + textHeight,
 				textPaint);
-		canvas.drawText("El " + (int) pitch, 0, 0 + 2 * textHeight, textPaint);
-		canvas.drawText("Sat " + target, 0, 0 + 3 * textHeight, textPaint);
-		canvas.drawText("Loc " + " " + ShowSatellites.latitude + " "
-				+ ShowSatellites.longitude, 0, 0 + 4 * textHeight, textPaint);
+		canvas.drawText("Mag Var " + (int) ShowSatellites.magDeclination, displayWidth - 18 * textHeight/2, 0 + 2 * textHeight, textPaint);
+		canvas.drawText("Loc " + " " + String.format("%.2f", ShowSatellites.lat) + " "
+				+ String.format("%.2f", ShowSatellites.lon), displayWidth - 18 * textHeight/2, 0 + 3 * textHeight, textPaint);
 		canvas.drawText("File: " + ShowSatellites.selectedTle + " "
-				+ ShowSatellites.selectedSpeed + "X", 0, 5 * textHeight,
+				+ ShowSatellites.selectedSpeed + "X", displayWidth - 18 * textHeight/2, 4 * textHeight,
+				textPaint);
+		canvas.drawText(displayTimeString, displayWidth - 18 * textHeight/2, 5 * textHeight,
 				textPaint);
 		if (ShowSatellites.gettingTles){
 			canvas.drawText("Downloading celestrak.net, amsat.org", 0,
-					0 + 6 * textHeight, textPaint);
-			canvas.drawText("and m mccants tle files", 0, 0 + 7 * textHeight,
+					0 + 8 * textHeight, textPaint);
+			canvas.drawText("and m mccants tle files", 0, 0 + 9 * textHeight,
 					textPaint);
 		}
-		else {
-			canvas.drawText(displayTimeString,displayWidth - displayTimeString.length() * textHeight/2, 0 + textHeight,
-					textPaint);
+		else if (null != targetSatPos) {
+			canvas.drawText("Sat " + target , 0, 0 + 1 * textHeight, textPaint);
+			canvas.drawText("Orbit " + (int)targetSatPos.perigee + " X " + (int)targetSatPos.apogee + " km", 0, 0 + 2 * textHeight, textPaint);
+			canvas.drawText("Inc/Prd " + (int)targetSatPos.inclination + " deg " + (int)targetSatPos.period + " mins", 0, 0 + 3 * textHeight, textPaint);
+			canvas.drawText("Dist " + (int)targetSatPos.range + " km", 0, 0 + 4 * textHeight, textPaint);
+			
 			
 		}
 

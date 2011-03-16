@@ -185,6 +185,8 @@ public class SDP4
   public int    itsNumber;
   /** The TLE epoch expressed in JD minus 2450000 days. */
   public double itsEpochJD;
+  
+  public double apogee, perigee, inclination, period;
 
 
   /** Whether period is >= 225 min */
@@ -2127,11 +2129,18 @@ AAAAAAAAAAAAAAAAAAAAAA
       throw new SDP4NoLineOneException("TLE line 2 not found");
 
     E1_XINCL  = Rfndm(theLine.substring(8));
+    this.inclination = E1_XINCL;
     E1_XNODEO = Rfndm(theLine.substring(17));
     E1_EO     = Rfndm(theLine.substring(26)) / 1e7;
     E1_OMEGAO = Rfndm(theLine.substring(34));
     E1_XMO    = Rfndm(theLine.substring(43));
     E1_XNO    = Rfndm(theLine.substring(52,63));
+    
+    this.period = 1440/E1_XNO;
+    double semiMajorAxis = Math.pow((8681663.653 / E1_XNO), (2.0/3.0));
+    this.perigee = (semiMajorAxis * (1 - E1_EO))- C1_XKMPER;
+    this.apogee = (semiMajorAxis * (1 + E1_EO))- C1_XKMPER;
+    
 
     E1_XNODEO = E1_XNODEO * C2_DE2RA;
     E1_OMEGAO = E1_OMEGAO * C2_DE2RA;

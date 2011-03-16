@@ -11,6 +11,7 @@ public class SatellitePosition {
 	public double range;
 	public Satellite sat;
 	public long positionTime;
+	public double inclination, period, perigee, apogee;
 	
 	public SatellitePosition(String theName, String theDisplayString, 
 			double theAzimuth, double theAzRadians, double theElRadians, double theElevation, double theRange, Satellite theSatellite){
@@ -22,6 +23,11 @@ public class SatellitePosition {
 		elRadians = theElRadians;
 		range = theRange;
 		sat = theSatellite;
+		inclination = theSatellite.itsSDP4.inclination;
+		apogee = theSatellite.itsSDP4.apogee;
+		perigee = theSatellite.itsSDP4.perigee;
+		period = theSatellite.itsSDP4.period;
+
 		
 	}
 	
