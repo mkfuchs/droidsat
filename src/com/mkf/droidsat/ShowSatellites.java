@@ -529,9 +529,12 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	private void getLocation() {
 		
 		if (manualLocation){
-			location.setLatitude(manualLat);
-			location.setLongitude(manualLon);
-			location.setAltitude(0);
+			
+			if (null != location) {
+				location.setLatitude(manualLat);
+				location.setLongitude(manualLon);
+				location.setAltitude(0);
+			}
 		}
 		else {
 			if (null == locationManager) {
@@ -865,7 +868,15 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		
 		getLocation();
 		if (location == null){
-			lat=0; lon=0; alt=0;
+			
+			if (manualLocation){
+				lat = manualLat;
+				lon  = manualLon;
+				alt=0;
+			}
+			else {
+				lat=0; lon=0; alt=0;
+			}
 		}
 		else{
 			lat = location.getLatitude();
