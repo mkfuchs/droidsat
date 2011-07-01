@@ -1085,7 +1085,7 @@ private void getSatDataFromNet(String droidSatDir) {
 
 		// mike mccant's classified satellite tle
 		URL mcCantUrl = new URL(
-		"http://www.io.com/~mmccants/tles/classfd.zip");
+		"http://www.prismnet.com/~mmccants/tles/classfd.zip");
 		is = mcCantUrl.openStream();
 
 		fos = new FileOutputStream(new File(tleDir, "classfd.zip"));
