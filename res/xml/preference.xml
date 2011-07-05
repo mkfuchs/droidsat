@@ -7,10 +7,15 @@
 			android:key="redScreenOn" android:defaultValue="false"></CheckBoxPreference>
 		<CheckBoxPreference android:key="altAzOn"
 			android:defaultValue="true" android:summary="Show Alt/Az Grid"></CheckBoxPreference>
-		<CheckBoxPreference android:key="darkSatsOn" android:defaultValue="true" android:summary="Show non-sunlit satellites"></CheckBoxPreference>
-		<CheckBoxPreference android:key="lowSatsOn" android:defaultValue="true" android:summary="Show below horizon satellites"></CheckBoxPreference>
+		<CheckBoxPreference android:summary="Show selected satellite's path"
+		 	android:key="satelliteTrackOn" android:defaultValue="true"></CheckBoxPreference>
+		<CheckBoxPreference android:key="darkSatsOn" android:defaultValue="true"
+			android:summary="Show non-sunlit satellites"></CheckBoxPreference>
+		<CheckBoxPreference android:key="lowSatsOn" android:defaultValue="true"
+			android:summary="Show below horizon satellites"></CheckBoxPreference>
 	
 <CheckBoxPreference android:key="sensorOrientationOn" android:defaultValue="true" android:summary="Use compass and orientation sensors"></CheckBoxPreference>
+
 </PreferenceCategory>
 
 	<PreferenceCategory android:title="DroidSat Display Values">

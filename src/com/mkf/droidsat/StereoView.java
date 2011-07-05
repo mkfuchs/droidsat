@@ -60,6 +60,7 @@ public class StereoView extends View {
 	private static String[] lonLabels = new String [360/gridSizeDegrees+1];
 	private static String[] latLabels = new String [180/gridSizeDegrees+1];
 	
+	public static volatile boolean displaySatelliteTrack = true;
 	public static volatile boolean displayAltAzGrid = true;
 	public static volatile boolean displayDarkSats = true;
 	public static volatile boolean displayLowSats = true;
@@ -331,6 +332,42 @@ public class StereoView extends View {
 						}
 					}
 
+				}
+				//Display selected satellite track
+				if (displaySatelliteTrack && null != ShowSatellites.satelliteTrack){
+					int j = 0;
+					double prevElevation = 0;
+					for (SatellitePosition satPos: ShowSatellites.satelliteTrack.position){
+						stereoProjRad(headingRadians, pitchRadians,
+								satPos.azRadians, satPos.elRadians, stereoCoord);
+						if (!((satPos.elevation < 0 || prevElevation < 0) &&
+								(ShowSatellites.fullSky || !displayLowSats))
+								&& !(satPos.sat.itsIsSunlit != 1 && !displayDarkSats)) {
+
+
+							if (j > 0 && stereoCoord.x >= 0 && stereoCoord.x <= displayWidth
+									&& stereoCoord.y >= 0
+									&& stereoCoord.y <= displayHeight &&
+									prevCoord.x >= 0 && prevCoord.x <= displayWidth
+									&& prevCoord.y >= 0
+									&& prevCoord.y <= displayHeight) {
+
+
+								if (satPos.sat.itsIsSunlit == 1) {
+									targetPaint = sunlitPaint;
+								} else {
+									targetPaint = notSunlitPaint;
+								}
+
+								canvas.drawLine(prevCoord.x, prevCoord.y, 
+										stereoCoord.x, stereoCoord.y, targetPaint);
+							}
+						}
+						prevCoord.x = stereoCoord.x;
+						prevCoord.y = stereoCoord.y;
+						prevElevation = satPos.elevation;
+						j++;
+					}
 				}
 			} catch (Exception e) {
 				//Transitioning from large tle file to small file may cause a concurrent

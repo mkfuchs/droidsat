@@ -88,10 +88,12 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	private static Spinner satellites;
 	private static ImageView tintPane;
 	private ZoomControls fov;
-	public static volatile ArrayList<SatellitePosition> satellitePositions = new ArrayList<SatellitePosition>();
+	public static volatile ArrayList<SatellitePosition> satellitePositions = 
+		new ArrayList<SatellitePosition>();
 	private static Satellite satellite = new Satellite();
 	private static Telescope station = new Telescope();
 	public static volatile SatelliteTrack satelliteTrack;
+	public static volatile boolean updateSatelliteTrack = false;
 	private Resources droidSatResources = null;
 	private InputStream satFileStream = null;
 	private ArrayAdapter<SatellitePosition> satPosnsAdapter;
@@ -139,6 +141,8 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	
 	public static final String PREFS_NAME = "DroidSatPrefsFile";
 	public static volatile long displayTime;
+	private static volatile int prevSatelliteSelection;
+
 
 	
 	private static OnSharedPreferenceChangeListener prefChangeListener = new OnSharedPreferenceChangeListener() {
@@ -183,6 +187,9 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			orientationLocked=false;
 		}
 		
+		else if (key.equals("satelliteTrackOn")){
+			StereoView.displaySatelliteTrack = sharedPreferences.getBoolean(key, true);
+		}	
 		else if (key.equals("altAzOn")){
 			StereoView.displayAltAzGrid = sharedPreferences.getBoolean(key, true);
 		}			
@@ -447,6 +454,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		stereoView = (StereoView) this.findViewById(R.id.stereoView);
 		cameraPreview = (CameraPreview) this.findViewById(R.id.cameraPreview);
 		sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+		
 		satellites = (Spinner) this.findViewById(R.id.satellites);
 		
 		fov = (ZoomControls) this.findViewById(R.id.fov);
@@ -645,6 +653,17 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 					}
 					displayTime=currentSimTime;
 					Satellite.showAllSats(null, station, satellitePositions);
+					
+					//if satellite selection has changed, update the satellite track
+					
+					if (StereoView.displaySatelliteTrack && updateSatelliteTrack){
+						if (null != selectedSatPosn && null != selectedSatPosn.sat) {
+							satelliteTrack = new SatelliteTrack(
+									selectedSatPosn.sat, station, displayTime);
+							updateSatelliteTrack = false;
+						}
+						updateSatelliteTrack = false;
+					}
 				}
 
 				try {
@@ -717,6 +736,10 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		if (!loadingTle && selection != AdapterView.INVALID_POSITION && selection < satellites.getCount() ){
 			satellites.setSelection(selection);
 			selectedSatPosn = (SatellitePosition) satellites.getSelectedItem();
+			if (selection != prevSatelliteSelection){
+				updateSatelliteTrack = true;
+			}
+			prevSatelliteSelection = selection;
 		}
 		if (nightVis){
 			tintPane.setAlpha(128);
@@ -897,6 +920,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		handler.post(doUpdateSpinner);
 		handler.post(doEnableSpinner);
 		orientationLocked=origOrientationLocked;
+		updateSatelliteTrack = true;
 	}
 
 	
