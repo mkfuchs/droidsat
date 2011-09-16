@@ -42,6 +42,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -50,12 +52,11 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.SubMenu;
 import android.view.View;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -142,6 +143,17 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	public static final String PREFS_NAME = "DroidSatPrefsFile";
 	public static volatile long displayTime;
 	private static volatile int prevSatelliteSelection;
+	
+	
+	private static final int matrix_size = 16;
+	private static volatile float[] Rm = new float[matrix_size];
+	private static volatile float[] outRm = new float[matrix_size];
+	private static volatile float[] Im = new float[matrix_size];
+	private static volatile float[] valuesM = new float[3];
+	private static volatile float[] mags = new float[3];
+	private static volatile float[] accels = new float[3];
+	private static volatile boolean isReady = false;
+	private static volatile boolean resetVideoProjectionRadius = false;
 
 
 	
@@ -178,6 +190,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			else if (displayType.equals("Video Backdrop")){
 				video=true;
 				fullSky=false;
+				resetVideoProjectionRadius = true;
 			}
 			else {
 				video=false;
@@ -392,8 +405,31 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	
 		public void onSensorChanged(SensorEvent event) {
 			if (sensorOrientationOn || video) {//always use sensor orientation when video is on
-				updateOrientation(event.values[0], event.values[1],
-						event.values[2]);				
+				
+				int type = event.sensor.getType();
+				
+	            switch (type) {
+	                case Sensor.TYPE_MAGNETIC_FIELD:
+	                    mags = event.values;
+	                    isReady = true;
+	                    break;
+	                case Sensor.TYPE_ACCELEROMETER:
+	                    accels = event.values;
+	                    break;
+	            }	            
+	            if (mags != null && accels != null && isReady) {
+
+	            	isReady = false;
+	            	SensorManager.getRotationMatrix(Rm, Im, accels, mags);
+	            	SensorManager.remapCoordinateSystem(Rm,
+	            			SensorManager.AXIS_X, SensorManager.AXIS_Z,
+	            			outRm);
+					SensorManager.getOrientation(outRm, valuesM);
+					
+					//Log.d("***", String.format("%6f %6f %6f %6f", (float)Math.toDegrees(valuesM[0]),(float)Math.toDegrees(valuesM[1]) * -1, (float)Math.toDegrees(valuesM[2]),(float)Math.toDegrees(SensorManager.getInclination(Im)) ));
+	                updateOrientation((float)Math.toDegrees(valuesM[0]),(float)Math.toDegrees(valuesM[1]) * -1, (float)Math.toDegrees(valuesM[2]));	                
+	            }
+								
 			}
 
 		}
@@ -402,6 +438,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 
 	public void onAccuracyChanged(Sensor arg0, int arg1) {
 		// TODO Auto-generated method stub
+		Log.d("***", "accuracy changed");
 		
 	}
 
@@ -424,8 +461,11 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		super.onResume();
 
 		 sensorManager.registerListener(sensorEventListener,
-		 sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
-		 	SensorManager.SENSOR_DELAY_UI);
+				 sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+				 	SensorManager.SENSOR_DELAY_UI);
+		 sensorManager.registerListener(sensorEventListener,
+				 sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+				 	SensorManager.SENSOR_DELAY_UI);
 
 	}
 
@@ -433,6 +473,9 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	protected void onPause(){
 		sensorManager.unregisterListener(sensorEventListener);
 		threadSuspended=true;
+		if (this.cameraPreview != null && this.cameraPreview.inPreview) {
+			this.cameraPreview.turnOff();
+		}
 		super.onPause();
 		
 	}
@@ -441,6 +484,9 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	protected void onStop() {
 		sensorManager.unregisterListener(sensorEventListener);
 		threadSuspended=true;
+		if (this.cameraPreview != null && this.cameraPreview.inPreview) {
+			this.cameraPreview.turnOff();
+		}
 		super.onStop();
 	}
 	
@@ -448,7 +494,6 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 
-		
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		stereoView = (StereoView) this.findViewById(R.id.stereoView);
@@ -724,8 +769,10 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	
 	private Runnable doUpdateGui = new Runnable() {
 		public void run() {
-			if (!loadingTle)
+			if (!loadingTle){
 				updateGui();
+				stereoView.invalidate();
+			}
 		}
 
 	};
@@ -748,9 +795,10 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			tintPane.setAlpha(0);
 		}
 		if (video){
-			if (this.cameraPreview != null && !this.cameraPreview.inPreview && !fullSky) {
+			if (resetVideoProjectionRadius || (this.cameraPreview != null && !this.cameraPreview.inPreview && !fullSky)) {
+				resetVideoProjectionRadius = false;
 				this.cameraPreview.turnOn();
-				StereoView.projectionRadius = stereoView.getWidth()/ Math.tan(Math.toRadians(cameraPreview.verticalViewAngle));
+				StereoView.projectionRadius = Math.max(stereoView.getWidth(), stereoView.getHeight())/ Math.tan(Math.toRadians(cameraPreview.viewAngle));
 			}
 			else if (this.cameraPreview !=null && fullSky && this.cameraPreview.inPreview){
 				this.cameraPreview.turnOff();
@@ -770,7 +818,6 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 				stereoView.setPitch(90);
 			}
 		}
-		stereoView.invalidate();
 	}
 	
 
@@ -1007,11 +1054,6 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			public boolean onMenuItemClick(MenuItem m) {
 				
 				try {
-					//Check if we have internet connection
-					URL satDataUrl = new URL("http://www.celestrak.net");
-					InputStream is = satDataUrl.openStream();
-					is.close();
-					//Check if we can write to the SD card storage
 					if (externalStorageAvailable()) {
 						gettingTles = true;
 					}
@@ -1021,6 +1063,14 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 										instance,
 										"USB Storage in use. Turn off USB storage and try again",
 										Toast.LENGTH_LONG);
+						msg.show();
+					}
+					if (!isOnline()){
+						Toast msg = Toast
+						.makeText(
+								instance,
+								"Internet not enabled or celestrak.net not available",
+								Toast.LENGTH_LONG);
 						msg.show();
 					}
 					
@@ -1225,6 +1275,15 @@ private void getSatDataFromNet(String droidSatDir) {
 		}
 
 		return mExternalStorageAvailable;
+	}
+	
+	private boolean isOnline() {
+	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo netInfo = cm.getActiveNetworkInfo();
+	    if (netInfo != null && netInfo.isConnected()) {
+	        return true;
+	    }
+	    return false;
 	}
 	
 

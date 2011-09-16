@@ -117,7 +117,8 @@ public class StereoView extends View {
 	public void setPitch(float _pitch) {
 		if (!ShowSatellites.orientationLocked) {
 			if (ShowSatellites.sensorOrientationOn ||ShowSatellites.video) {
-				pitch = _pitch * -1 - 90;
+				//pitch = _pitch * -1 - 90;
+				pitch = _pitch;
 			} else {
 				if (ShowSatellites.fullSky){
 					pitch = 90;
@@ -269,7 +270,13 @@ public class StereoView extends View {
 		}
 		
 		if (ShowSatellites.fullSky){
-			StereoView.projectionRadius = displayWidth/4 - StereoView.textSize;	
+			if (displayWidth < displayHeight){
+				StereoView.projectionRadius = displayWidth/4 - StereoView.textSize;
+			}
+			else{
+				StereoView.projectionRadius = displayHeight/4 - StereoView.textSize;
+			}
+			
 			pitch=90;
 			updatePitchRadians();
 		}
@@ -322,9 +329,6 @@ public class StereoView extends View {
 								targetRadius = 4;
 							} else
 								targetRadius = 2;
-							if (satPos.elevation < 0) {
-								targetRadius = 1;
-							}
 
 							canvas.drawCircle(stereoCoord.x, stereoCoord.y,
 									targetRadius, targetPaint);
@@ -336,31 +340,40 @@ public class StereoView extends View {
 				//Display selected satellite track
 				if (displaySatelliteTrack && null != ShowSatellites.satelliteTrack){
 					int j = 0;
+					int endPoint = ShowSatellites.satelliteTrack.position.length - 1;
 					double prevElevation = 0;
-					for (SatellitePosition satPos: ShowSatellites.satelliteTrack.position){
+
+					for (SatellitePosition satPos : ShowSatellites.satelliteTrack.position) {
 						stereoProjRad(headingRadians, pitchRadians,
 								satPos.azRadians, satPos.elRadians, stereoCoord);
-						if (!((satPos.elevation < 0 || prevElevation < 0) &&
-								(ShowSatellites.fullSky || !displayLowSats))
+						if (!((satPos.elevation < 0 || prevElevation < 0) && (ShowSatellites.fullSky || !displayLowSats))
 								&& !(satPos.sat.itsIsSunlit != 1 && !displayDarkSats)) {
 
-
-							if (j > 0 && stereoCoord.x >= 0 && stereoCoord.x <= displayWidth
-									&& stereoCoord.y >= 0
-									&& stereoCoord.y <= displayHeight &&
-									prevCoord.x >= 0 && prevCoord.x <= displayWidth
-									&& prevCoord.y >= 0
-									&& prevCoord.y <= displayHeight) {
-
-
-								if (satPos.sat.itsIsSunlit == 1) {
-									targetPaint = sunlitPaint;
-								} else {
-									targetPaint = notSunlitPaint;
-								}
-
-								canvas.drawLine(prevCoord.x, prevCoord.y, 
-										stereoCoord.x, stereoCoord.y, targetPaint);
+							if (j == 0) { //filled box for orbit start
+								canvas.drawRect(stereoCoord.x - 3,
+										stereoCoord.y - 3,
+										stereoCoord.x + 3,
+										stereoCoord.y + 3, sunlitPaint);
+								prevCoord.x = stereoCoord.x;
+								prevCoord.y = stereoCoord.y;
+							} else if (j == endPoint) { //empty box for orbit end
+								canvas.drawRect(stereoCoord.x - 3,
+										stereoCoord.y - 3,
+										stereoCoord.x + 3,
+										stereoCoord.y + 3, notSunlitPaint);
+							}
+							// both orbit segments are in the display do draw it
+							if (j > 0 && null != prevCoord && null != stereoCoord &&
+									((stereoCoord.x >= 0 && stereoCoord.x <= displayWidth) || 
+											(prevCoord.x >= 0 && prevCoord.x <= displayWidth))
+											&& 
+									((stereoCoord.y >= 0 && stereoCoord.y <= displayHeight) || 
+													(prevCoord.y >= 0 && prevCoord.y <= displayHeight))
+								) 
+							{
+								canvas.drawLine(prevCoord.x,
+										prevCoord.y, stereoCoord.x,
+										stereoCoord.y, sunlitPaint);
 							}
 						}
 						prevCoord.x = stereoCoord.x;
@@ -373,7 +386,7 @@ public class StereoView extends View {
 				//Transitioning from large tle file to small file may cause a concurrent
 				//modification exception. Disregard, it is infrequent, and transitory
 				//with no side-effects
-				Log.d(this.getClass().getName(), "Exception plotting satellite");
+				Log.e(this.getClass().getName(), "Exception plotting satellite" + e);
 			}
 		}
 		if (ShowSatellites.loadingTle)
@@ -649,9 +662,6 @@ public class StereoView extends View {
 				prevYdiff = yDiff;
 				prevXdiff = xDiff;
 				this.invalidate();
-				
-				
-				
 			}
 			break;
 		case MotionEvent.ACTION_UP: 
@@ -662,14 +672,9 @@ public class StereoView extends View {
 				prevYdiff = yDiff;
 				prevXdiff = xDiff;
 				this.invalidate();
-				
-				
-				
 			}
 			break;
 		}
-		
-		
 		return true;
 		
 	}

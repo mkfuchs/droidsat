@@ -22,15 +22,19 @@ import android.hardware.Camera;
 import android.os.Build.VERSION;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Display;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.WindowManager;
+
 import java.lang.reflect.Method;
 
 
 class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     SurfaceHolder mHolder;
     Camera mCamera;
-    volatile float verticalViewAngle = 37.5f;
+    volatile float viewAngle = 37.5f;
     volatile boolean inPreview = false;
     
     public CameraPreview(Context context) {
@@ -41,37 +45,71 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
         mHolder = getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        this.verticalViewAngle = this.getVerticalViewAngle();
+        this.viewAngle = this.getViewAngle();
     }
 	public CameraPreview(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		mHolder = getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        this.verticalViewAngle = this.getVerticalViewAngle();
+        this.viewAngle = this.getViewAngle();
 	}
 	public CameraPreview(Context context, AttributeSet attrs, int defaultStyle) {
 		super(context, attrs, defaultStyle);
 		mHolder = getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        this.verticalViewAngle = this.getVerticalViewAngle();
+        this.viewAngle = this.getViewAngle();
 	}
 
 	public void surfaceCreated(SurfaceHolder holder) {
 		// The Surface has been created, acquire the camera and tell it where
 		// to draw.
+		Display display = ((WindowManager) this.getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		int rotation = display.getOrientation();
+		String orientation = getScreenOrientation();
 		mCamera = Camera.open();
 		try {
 
+			
 			if (VERSION.SDK_INT < 8) { // Android 2.2 
 				Camera.Parameters parameters = mCamera.getParameters();
-				parameters.set("orientation", "portrait");
-				parameters.set("rotation", 90);
+				if (rotation == Surface.ROTATION_0 && orientation.equals("portrait")) {
+					parameters.set("orientation", orientation);
+					parameters.set("rotation", 90);
+				}
+				else if (rotation == Surface.ROTATION_270 && orientation.equals("landscape")) {
+					parameters.set("orientation", orientation);
+					parameters.set("rotation", 180);
+				}
 				mCamera.setParameters(parameters);
 			} else {
 				Method setDisplayOrientation = mCamera.getClass().getMethod("setDisplayOrientation", Integer.TYPE);
-				setDisplayOrientation.invoke(mCamera, 90);
+				if (rotation == Surface.ROTATION_0) {
+					if (orientation.equals("portrait")){
+						setDisplayOrientation.invoke(mCamera, 90);
+					}
+					else {
+						setDisplayOrientation.invoke(mCamera, 0);
+					}
+					
+				}
+				else if (rotation == Surface.ROTATION_90) {
+					if (orientation.equals("landscape")){
+						setDisplayOrientation.invoke(mCamera, 0);
+					}
+					else{
+						setDisplayOrientation.invoke(mCamera, 270);
+					}
+				}
+				else if (rotation == Surface.ROTATION_270) {
+					if (orientation.equals("landscape")){
+						setDisplayOrientation.invoke(mCamera, 180);
+					}
+					else{
+						setDisplayOrientation.invoke(mCamera, 90);
+					}
+				}
 			}
 			mCamera.setPreviewDisplay(holder);
 		} catch (Exception exception) {
@@ -95,7 +133,11 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
         // Now that the size is known, set up the camera parameters and begin
         // the preview.
         Camera.Parameters parameters = mCamera.getParameters();
-        mCamera.setParameters(parameters);
+        if (ShowSatellites.video) {
+			this.turnOff();
+			this.turnOn();
+		}
+		mCamera.setParameters(parameters);
     }
     
     public void turnOff(){
@@ -111,20 +153,36 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 			this.inPreview=true;
 		}
     }
-	public float getVerticalViewAngle() {
-		float viewAngle = 37.5f; //default value
-		if (VERSION.SDK_INT >= 8){
-			
+	public float getViewAngle() {
+		float myViewAngle = 37.5f; //default value
+		String angleMethod = "getHorizontalViewAngle";
+		if (VERSION.SDK_INT >= 8){			
 			try {
+				
 				Camera.Parameters parameters = mCamera.getParameters();
-				Method getVerticalViewAngleMethod = parameters.getClass().getMethod("getHorizontalViewAngle");
-				viewAngle = (Float)getVerticalViewAngleMethod.invoke(parameters, null);
+				Method getViewAngleMethod = parameters.getClass().getMethod(angleMethod);
+				myViewAngle = (Float)getViewAngleMethod.invoke(parameters, null);
+				
 				
 			} catch (Exception e) {
 				Log.d(this.getClass().getName(),"Exception getting view angle");;
 			}
 		}
-		return viewAngle;
+		return myViewAngle;
+	}
+	
+	private String getScreenOrientation(){
+		Display display = ((WindowManager) this.getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		String orientation;
+		boolean isPortrait = (display.getHeight() > display.getWidth());
+		if (isPortrait){
+			orientation = "portrait";
+		}
+		else{
+			orientation = "landscape";
+		}
+		
+		return orientation;
 	}
 
 }

@@ -1,7 +1,5 @@
 package uk.me.chiandh.Sputnik;
 
-import com.mkf.droidsat.ShowSatellites;
-
 import uk.me.chiandh.Lib.Hmelib;
 
 
