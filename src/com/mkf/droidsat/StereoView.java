@@ -20,6 +20,7 @@ import android.graphics.Paint.Align;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 public class StereoView extends View {
@@ -78,6 +79,8 @@ public class StereoView extends View {
 	
 	private float prevXdiff = 0;
 	private float prevYdiff = 0;
+	
+	private ScaleGestureDetector mScaleDetector;
 	
 	public static volatile int trackballSpeed = 2;
 	public static volatile float textSize = 16;
@@ -158,20 +161,20 @@ public class StereoView extends View {
 
 	public StereoView(Context context) {
 		super(context);
-		initStereoView();
+		initStereoView(context);
 	}
 
 	public StereoView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		initStereoView();
+		initStereoView(context);
 	}
 
 	public StereoView(Context context, AttributeSet attrs, int defaultStyle) {
 		super(context, attrs, defaultStyle);
-		initStereoView();
+		initStereoView(context);
 	}
 
-	protected void initStereoView() {
+	protected void initStereoView(Context context) {
 		setFocusable(true);
 		
 
@@ -249,6 +252,8 @@ public class StereoView extends View {
 			j++;
 		}
 		
+		mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+		
 
 	}
 	
@@ -274,7 +279,7 @@ public class StereoView extends View {
 				StereoView.projectionRadius = displayWidth/4 - StereoView.textSize;
 			}
 			else{
-				StereoView.projectionRadius = displayHeight/4 - StereoView.textSize;
+				StereoView.projectionRadius = displayHeight/4 - (2 * StereoView.textSize);
 			}
 			
 			pitch=90;
@@ -634,6 +639,9 @@ public class StereoView extends View {
 	@Override
 	public boolean onTouchEvent(MotionEvent event){
 		
+		if (!ShowSatellites.video) {
+			mScaleDetector.onTouchEvent(event);
+		}
 		float yDiff =  event.getY();
 		float xDiff = event.getX();
 		
@@ -679,5 +687,17 @@ public class StereoView extends View {
 		
 	}
 	
+	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+	    @Override
+	    public boolean onScale(ScaleGestureDetector detector) {
+	        projectionRadius *= detector.getScaleFactor();
+	        
+	        // Don't let the object get too small or too large.
+	        //projectionRadius = Math.max(0.1f, Math.min(projectionRadius, 5.0f));
+
+	        invalidate();
+	        return true;
+	    }
+	}	
 
 }

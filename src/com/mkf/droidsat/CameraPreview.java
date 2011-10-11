@@ -17,6 +17,8 @@
 package com.mkf.droidsat;
 
 
+import java.lang.reflect.Method;
+
 import android.content.Context;
 import android.hardware.Camera;
 import android.os.Build.VERSION;
@@ -27,8 +29,6 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-
-import java.lang.reflect.Method;
 
 
 class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
@@ -65,53 +65,11 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 	public void surfaceCreated(SurfaceHolder holder) {
 		// The Surface has been created, acquire the camera and tell it where
 		// to draw.
-		Display display = ((WindowManager) this.getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-		int rotation = display.getOrientation();
-		String orientation = getScreenOrientation();
 		mCamera = Camera.open();
 		try {
-
 			
-			if (VERSION.SDK_INT < 8) { // Android 2.2 
-				Camera.Parameters parameters = mCamera.getParameters();
-				if (rotation == Surface.ROTATION_0 && orientation.equals("portrait")) {
-					parameters.set("orientation", orientation);
-					parameters.set("rotation", 90);
-				}
-				else if (rotation == Surface.ROTATION_270 && orientation.equals("landscape")) {
-					parameters.set("orientation", orientation);
-					parameters.set("rotation", 180);
-				}
-				mCamera.setParameters(parameters);
-			} else {
-				Method setDisplayOrientation = mCamera.getClass().getMethod("setDisplayOrientation", Integer.TYPE);
-				if (rotation == Surface.ROTATION_0) {
-					if (orientation.equals("portrait")){
-						setDisplayOrientation.invoke(mCamera, 90);
-					}
-					else {
-						setDisplayOrientation.invoke(mCamera, 0);
-					}
-					
-				}
-				else if (rotation == Surface.ROTATION_90) {
-					if (orientation.equals("landscape")){
-						setDisplayOrientation.invoke(mCamera, 0);
-					}
-					else{
-						setDisplayOrientation.invoke(mCamera, 270);
-					}
-				}
-				else if (rotation == Surface.ROTATION_270) {
-					if (orientation.equals("landscape")){
-						setDisplayOrientation.invoke(mCamera, 180);
-					}
-					else{
-						setDisplayOrientation.invoke(mCamera, 90);
-					}
-				}
-			}
 			mCamera.setPreviewDisplay(holder);
+			
 		} catch (Exception exception) {
 			mCamera.release();
 			this.inPreview=false;
@@ -132,12 +90,67 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
         // Now that the size is known, set up the camera parameters and begin
         // the preview.
-        Camera.Parameters parameters = mCamera.getParameters();
+        //Camera.Parameters parameters = mCamera.getParameters();
         if (ShowSatellites.video) {
 			this.turnOff();
+			
+			if (null != mCamera){
+				Display display = ((WindowManager) this.getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+				int rotation = display.getOrientation();
+				String orientation = getScreenOrientation();
+				try {
+
+					
+					if (VERSION.SDK_INT < 8) { // Android 2.2 
+						Camera.Parameters parameters = mCamera.getParameters();
+						if (rotation == Surface.ROTATION_0 && orientation.equals("portrait")) {
+							parameters.set("orientation", orientation);
+							parameters.set("rotation", 90);
+						}
+						else if (rotation == Surface.ROTATION_270 && orientation.equals("landscape")) {
+							parameters.set("orientation", orientation);
+							parameters.set("rotation", 180);
+						}
+						mCamera.setParameters(parameters);
+					} else {
+						Method setDisplayOrientation = mCamera.getClass().getMethod("setDisplayOrientation", Integer.TYPE);
+						if (rotation == Surface.ROTATION_0) {
+							if (orientation.equals("portrait")){
+								setDisplayOrientation.invoke(mCamera, 90);
+							}
+							else {
+								setDisplayOrientation.invoke(mCamera, 0);
+							}
+							
+						}
+						else if (rotation == Surface.ROTATION_90) {
+							if (orientation.equals("landscape")){
+								setDisplayOrientation.invoke(mCamera, 0);
+							}
+							else{
+								setDisplayOrientation.invoke(mCamera, 270);
+							}
+						}
+						else if (rotation == Surface.ROTATION_270) {
+							if (orientation.equals("landscape")){
+								setDisplayOrientation.invoke(mCamera, 180);
+							}
+							else{
+								setDisplayOrientation.invoke(mCamera, 90);
+							}
+						}
+					}
+
+				} catch (Exception exception) {
+					mCamera.release();
+					this.inPreview=false;
+					mCamera = null;
+				}
+			}
+			
 			this.turnOn();
 		}
-		mCamera.setParameters(parameters);
+		
     }
     
     public void turnOff(){

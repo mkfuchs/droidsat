@@ -44,28 +44,24 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build.VERSION;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Build.VERSION;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.SubMenu;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
-import android.widget.ZoomButtonsController;
-import android.widget.ZoomControls;
 
-public class ShowSatellites extends Activity implements ZoomButtonsController.OnZoomListener {
+public class ShowSatellites extends Activity {
 	/** Called when the activity is first created. */
 
 	float heading = 0;
@@ -88,7 +84,6 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	EditText pitchRollText;
 	private static Spinner satellites;
 	private static ImageView tintPane;
-	private ZoomControls fov;
 	public static volatile ArrayList<SatellitePosition> satellitePositions = 
 		new ArrayList<SatellitePosition>();
 	private static Satellite satellite = new Satellite();
@@ -122,6 +117,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	private static volatile boolean nightVis=false;
 	public static volatile boolean video=false;
 	private static volatile boolean forceLoadTle = false;
+	private static volatile boolean forceResetLocation = false;
 	public static volatile double magDeclination;
 	private static volatile boolean threadSuspended = false;
 	public volatile static int selectedSpeed =1;
@@ -152,8 +148,8 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	private static volatile float[] valuesM = new float[3];
 	private static volatile float[] mags = new float[3];
 	private static volatile float[] accels = new float[3];
-	private static volatile boolean isReady = false;
 	private static volatile boolean resetVideoProjectionRadius = false;
+	
 
 
 	
@@ -348,33 +344,36 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		}
 		
 		else if (key.equals("sensorSensitivity")){
-			String sensitivity = sharedPreferences.getString(key, "low");
+			String sensitivity = sharedPreferences.getString(key, "medium");
 			if (sensitivity.equals("low")){
-				sensorSensitivity= 15;
+				sensorSensitivity= 40;
 			}
 			else if (sensitivity.equals("medium")){
-				sensorSensitivity= 10;
+				sensorSensitivity= 20;
 			}
 			else if (sensitivity.equals("high")){
-				sensorSensitivity= 5;
+				sensorSensitivity= 10;
 			}
 			
 			StereoView.textHeight = (int) StereoView.textSize;
 		}
 		
 		else if (key.equals("manualLocation")){
-			manualLocation = sharedPreferences.getBoolean(key, false);
-			forceLoadTle = true;
 			
+			manualLocation = sharedPreferences.getBoolean(key, false);
+
+			forceResetLocation = true;
 		}
 		
 		else if (key.equals("manualLat")){
 			try{
+				
 				manualLat = Double.valueOf(sharedPreferences.getString(key, "49"));
 				if (90 < manualLat || -90 > manualLat){
 					throw (new Exception());
 				}
-				forceLoadTle = true;
+
+				forceResetLocation = true;
 			}
 			catch (Exception e){
 				manualLat = 0d;
@@ -383,11 +382,13 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		
 		else if (key.equals("manualLon")){
 			try{
+				
 				manualLon = Double.valueOf(sharedPreferences.getString(key, "-121"));
 				if (180 < manualLon || -180 > manualLon){
 					throw (new Exception());
 				}
-				forceLoadTle = true;
+				
+				forceResetLocation = true;
 			}
 			catch (Exception e){
 				manualLon = 0d;
@@ -407,27 +408,31 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			if (sensorOrientationOn || video) {//always use sensor orientation when video is on
 				
 				int type = event.sensor.getType();
+				boolean magChanged = false;
+				boolean accelChanged = false;
 				
 	            switch (type) {
 	                case Sensor.TYPE_MAGNETIC_FIELD:
 	                    mags = event.values;
-	                    isReady = true;
+	                    magChanged = true;
 	                    break;
 	                case Sensor.TYPE_ACCELEROMETER:
 	                    accels = event.values;
+	                    accelChanged = true;
 	                    break;
-	            }	            
-	            if (mags != null && accels != null && isReady) {
+	            }	     
 
-	            	isReady = false;
+	            if (mags != null && accels != null && (accelChanged || magChanged)) {
+
+	            	
 	            	SensorManager.getRotationMatrix(Rm, Im, accels, mags);
 	            	SensorManager.remapCoordinateSystem(Rm,
 	            			SensorManager.AXIS_X, SensorManager.AXIS_Z,
 	            			outRm);
 					SensorManager.getOrientation(outRm, valuesM);
 					
-					//Log.d("***", String.format("%6f %6f %6f %6f", (float)Math.toDegrees(valuesM[0]),(float)Math.toDegrees(valuesM[1]) * -1, (float)Math.toDegrees(valuesM[2]),(float)Math.toDegrees(SensorManager.getInclination(Im)) ));
-	                updateOrientation((float)Math.toDegrees(valuesM[0]),(float)Math.toDegrees(valuesM[1]) * -1, (float)Math.toDegrees(valuesM[2]));	                
+	                updateOrientation((float)Math.toDegrees(valuesM[0]),(float)Math.toDegrees(valuesM[1]) * -1, (float)Math.toDegrees(valuesM[2]), magChanged, accelChanged);
+	                magChanged = false; accelChanged = false;
 	            }
 								
 			}
@@ -438,7 +443,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 
 	public void onAccuracyChanged(Sensor arg0, int arg1) {
 		// TODO Auto-generated method stub
-		Log.d("***", "accuracy changed");
+		
 		
 	}
 
@@ -502,21 +507,6 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		
 		satellites = (Spinner) this.findViewById(R.id.satellites);
 		
-		fov = (ZoomControls) this.findViewById(R.id.fov);
-		fov.setOnZoomOutClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				if ( !video && !fullSky &&StereoView.projectionRadius >=20){
-					StereoView.projectionRadius = StereoView.projectionRadius - 20;
-				}
-			}
-		});
-		fov.setOnZoomInClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				if (!video && !fullSky && StereoView.projectionRadius <=1000){
-					StereoView.projectionRadius = StereoView.projectionRadius + 20;
-				}
-			}
-		});
 		tintPane = (ImageView) this.findViewById(R.id.tintPane);
 		getLocation();
 		if (station == null){
@@ -529,12 +519,10 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		
 		//check to see if we have any files, if not get them		
 		//check external file dir
-		
-		
+				
 		refreshTleDir();
 		
 		
-
 		if (availTles != null && availTles.length < 1){
 			gettingTles=true;
 		}
@@ -552,11 +540,13 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 			satPosUpdateThread.start();
 		}
 		
-		if (!satellitePositions.isEmpty()){
-			Satellite.showAllSats(null, station, satellitePositions);
-		}
+		/*if (!satellitePositions.isEmpty()){
+			Satellite.showAllSats(null, station, satellitePositions);//orientation change causing bug
+		}*/
 		
 		updateSpinner();
+		
+		
 		
 		Bitmap tintBitmap = Bitmap.createBitmap(getWindowManager().getDefaultDisplay().getWidth(), getWindowManager().getDefaultDisplay().getHeight(), Bitmap.Config.ARGB_8888);
 		tintBitmap.eraseColor(Color.RED);
@@ -576,7 +566,7 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(this);
 		restoreValuesFromPreferences(prefs);
 		prefs.registerOnSharedPreferenceChangeListener(prefChangeListener);
-		updateOrientation(0,0,0);
+		updateOrientation(0,0,0, true,true);
 		
 	}
 	private void getLocation() {
@@ -682,6 +672,10 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 					forceLoadTle=false;
 				} else {
 					
+					if (forceResetLocation){
+						resetLocation();
+						forceResetLocation = false;
+					}
 					currentRealTime = System.currentTimeMillis();
 					diffTime = currentRealTime-lastRealTime;
 					currentSimTime = lastSimTime + selectedSpeed * diffTime;
@@ -822,45 +816,48 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 	
 
 
-	private void updateOrientation(float _heading, float _pitch, float _roll) {
+	private void updateOrientation(float _heading, float _pitch, float _roll, boolean magChanged, boolean accelChanged) {
 				
 		
-		headingDiff=_heading-_prevHeading;
-		if (headingDiff > 180){
-			headingDiff=(360-headingDiff)*-1;
+		if (magChanged) {
+			headingDiff = _heading - _prevHeading;
+			if (headingDiff > 180) {
+				headingDiff = (360 - headingDiff) * -1;
+			} else if (headingDiff < -180) {
+				headingDiff = (-360 - headingDiff) * -1;
+			}
+			if (lastHdiff == 4) {
+				lastHdiff = 0;
+			}
+			avgHeadingDiff = 0;
+			headingDiffs[lastHdiff++] = headingDiff;
+			for (int i = 0; i < 5; i++) {
+				avgHeadingDiff += headingDiffs[i];
+			}
+			avgHeadingDiff = avgHeadingDiff / sensorSensitivity;
+			_heading = _prevHeading + avgHeadingDiff;
 		}
-		else if (headingDiff < -180){
-			headingDiff=(-360-headingDiff)*-1;
-		}
-		if (lastHdiff==4){
-			lastHdiff=0;
-		}
-		
-		avgHeadingDiff=0;
-		headingDiffs[lastHdiff++]=headingDiff;
-		for(int i=0;i<5;i++){
-			avgHeadingDiff+=headingDiffs[i];
-		}
-		avgHeadingDiff = avgHeadingDiff/sensorSensitivity;
-		_heading=_prevHeading+avgHeadingDiff;
-		
-		
-		
-		pitchDiff=_pitch-_prevPitch;
-		if (lastPdiff==4){
-			lastPdiff=0;
+		else{
+			_heading = _prevHeading;
 		}
 		
-		avgPitchDiff=0;
-		pitchDiffs[lastPdiff++]=pitchDiff;
-		for(int i=0;i<5;i++){
-			avgPitchDiff+=pitchDiffs[i];
+		if (accelChanged) {
+			pitchDiff = _pitch - _prevPitch;
+			if (lastPdiff == 4) {
+				lastPdiff = 0;
+			}
+			avgPitchDiff = 0;
+			pitchDiffs[lastPdiff++] = pitchDiff;
+			for (int i = 0; i < 5; i++) {
+				avgPitchDiff += pitchDiffs[i];
+			}
+			avgPitchDiff = avgPitchDiff / sensorSensitivity;
+			_pitch = _prevPitch + avgPitchDiff;
 		}
-		avgPitchDiff = avgPitchDiff/sensorSensitivity;
-		_pitch=_prevPitch+avgPitchDiff;
+		else{
+			_pitch=_prevPitch;
+		}
 		
-		
-
 		if (stereoView != null ){ 
 
 			heading = _heading + (float)magDeclination;
@@ -914,6 +911,53 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		
 	}
 	
+	private void resetLocation(){
+		TSAGeoMag geoMag = new TSAGeoMag();
+		boolean origOrientationLocked = orientationLocked;
+		if (!origOrientationLocked)
+			orientationLocked=true;
+		
+		//disable spinner
+		handler.post(doDisableSpinner);
+		//satellitePositions.clear();
+		station.Init();
+		station.SetUTSystem();
+		
+		getLocation();
+		if (location == null){
+			
+			if (manualLocation){
+				lat = manualLat;
+				lon  = manualLon;
+				alt=0;
+			}
+			else {
+				lat=0; lon=0; alt=0;
+			}
+		}
+		else{
+			lat = location.getLatitude();
+			lon = location.getLongitude();
+			alt = location.getAltitude();			
+		}
+		magDeclination = geoMag.getDeclination(lat,lon);
+		latitude = (int) lat;
+		longitude = (int) lon;
+		
+		station.SetGeodetic("Vancouver", lon / Hmelib.DEGPERRAD, lat
+				/ Hmelib.DEGPERRAD, alt/1000000000);
+		satellite.Init();
+		
+		//Satellite.showAllSats(satFileStream, station, satellitePositions);
+		//Collections.sort(satellitePositions, new SatellitePositionComparator());
+		
+		handler.post(doUpdateSpinner);
+		handler.post(doEnableSpinner);
+		orientationLocked=origOrientationLocked;
+		updateSatelliteTrack = true;
+		
+	}
+	
 	private void loadTle(String tle) {
 		
 		TSAGeoMag geoMag = new TSAGeoMag();
@@ -921,15 +965,6 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		if (!origOrientationLocked)
 			orientationLocked=true;
 		
-		loadingTle=true;
-		try {
-			//satFileStream = openFileInput(tleDir.getAbsolutePath() + tle);
-			refreshTleDir();
-			satFileStream = new FileInputStream(new File(tleDir, tle));
-		} 
-		catch (Exception e) {
-			Log.d(this.getClass().getName(),"error reading tle file");
-		}
 		//disable spinner
 		handler.post(doDisableSpinner);
 		satellitePositions.clear();
@@ -960,6 +995,16 @@ public class ShowSatellites extends Activity implements ZoomButtonsController.On
 		station.SetGeodetic("Vancouver", lon / Hmelib.DEGPERRAD, lat
 				/ Hmelib.DEGPERRAD, alt/1000000000);
 		satellite.Init();
+		
+		loadingTle=true;
+		try {
+			refreshTleDir();
+			satFileStream = new FileInputStream(new File(tleDir, tle));
+		} 
+		catch (Exception e) {
+			Log.d(this.getClass().getName(),"error reading tle file");
+		}
+
 		Satellite.showAllSats(satFileStream, station, satellitePositions);
 		Collections.sort(satellitePositions, new SatellitePositionComparator());		
 		loadingTle=false;
