@@ -151,7 +151,7 @@ public class StereoView extends View {
 
 	public void setRoll(float _roll) {
 		if (!ShowSatellites.orientationLocked)
-			if (Math.abs(_roll)< 20)
+			if (Math.abs(_roll)< 90)
 				roll = _roll;
 	}
 
@@ -267,6 +267,7 @@ public class StereoView extends View {
 		int px = displayWidth / 2;
 		int py = displayHeight / 2;
 		int i;
+		//canvas.rotate(-roll, getWidth()/2, getHeight()/2);
 		
 		displayTimeString = df.format(new Date(ShowSatellites.displayTime));
 
@@ -410,7 +411,7 @@ public class StereoView extends View {
 					
 		}
 
-		// canvas.rotate(-roll);
+	//canvas.rotate(-roll, getWidth()/2, getHeight()/2);
 		canvas.drawText("Az/El " + String.format("%3d", (int)heading) + " " + String.format("%-2d", (int)pitch), displayWidth - 18 * textHeight/2, 0 + textHeight,
 				textPaint);
 		canvas.drawText("Mag Var " + (int) ShowSatellites.magDeclination, displayWidth - 18 * textHeight/2, 0 + 2 * textHeight, textPaint);

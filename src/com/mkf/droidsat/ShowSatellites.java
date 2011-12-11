@@ -98,7 +98,7 @@ public class ShowSatellites extends Activity {
 	public static SatellitePosition selectedSatPosn = null;
 	/*list of celestrak TLEs*/
 	private static final String[] celestrakTles =
-	{"tle-new","stations","visual","1999-025","iridium-33-debris","cosmos-2251-debris",
+	{"phobos-grunt","tle-new","stations","visual","1999-025","iridium-33-debris","cosmos-2251-debris",
 		"weather","noaa","goes","resource","sarsat","dmc","tdrss","geo","intelsat",
 		"gorizont","raduga","molniya","iridium","orbcomm","globalstar","amateur",
 		"x-comm","other-comm","gps-ops","glo-ops","galileo","sbas","nnss","musson",
