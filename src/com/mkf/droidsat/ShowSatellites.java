@@ -126,11 +126,13 @@ public class ShowSatellites extends Activity {
 	public volatile static int selectedSpeed = 1;
 	private float headingDiff = 0;
 	private int lastHdiff = 0;
-	private float[] headingDiffs = new float[SENSOR_SAMPLE_SIZE];
+	private static float[] headingDiffs = new float[SENSOR_SAMPLE_SIZE];
+	private static float[] sortedHeadingDiffs = new float[SENSOR_SAMPLE_SIZE];
 
 	private float pitchDiff = 0;
 	private int lastPdiff = 0;
-	private float[] pitchDiffs = new float[SENSOR_SAMPLE_SIZE];
+	private static float[] pitchDiffs = new float[SENSOR_SAMPLE_SIZE];
+	private static float[] sortedPitchDiffs = new float[SENSOR_SAMPLE_SIZE];
 	public static volatile boolean fullSky = false;
 	public static volatile float viewAngle = -1;
 	private static Context instance;
@@ -819,10 +821,9 @@ public class ShowSatellites extends Activity {
 			}
 
 			headingDiffs[lastHdiff++] = headingDiff;
-			float avgHeadingDiffs[] = Arrays.copyOf(headingDiffs,
-					headingDiffs.length);
-			Arrays.sort(avgHeadingDiffs);
-			_heading = _prevHeading + avgHeadingDiffs[SENSOR_SAMPLE_SIZE/2] / sensorSensitivity;
+			System.arraycopy(headingDiffs, 0, sortedHeadingDiffs, 0, headingDiffs.length);
+			Arrays.sort(sortedHeadingDiffs);
+			_heading = _prevHeading + sortedHeadingDiffs[SENSOR_SAMPLE_SIZE/2] / sensorSensitivity;
 
 		} else {
 			_heading = _prevHeading;
@@ -836,10 +837,9 @@ public class ShowSatellites extends Activity {
 			}
 
 			pitchDiffs[lastPdiff++] = pitchDiff;
-			float avgPitchDiffs[] = Arrays.copyOf(pitchDiffs,
-					pitchDiffs.length);
-			Arrays.sort(avgPitchDiffs);
-			_pitch = _prevPitch + avgPitchDiffs[SENSOR_SAMPLE_SIZE/2] / sensorSensitivity;
+			System.arraycopy(pitchDiffs, 0, sortedPitchDiffs, 0, pitchDiffs.length);
+			Arrays.sort(sortedPitchDiffs);
+			_pitch = _prevPitch + sortedPitchDiffs[SENSOR_SAMPLE_SIZE/2] / sensorSensitivity;
 			
 		} else {
 			_pitch = _prevPitch;
