@@ -64,9 +64,9 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 public class ShowSatellites extends Activity {
-	private static final int SENSOR_SAMPLE_SIZE = 5;
+	
 	/** Called when the activity is first created. */
-
+	private static final int SENSOR_SAMPLE_SIZE = 5;
 	float heading = 0;
 	float pitch = 0;
 	float roll = 0;
@@ -342,11 +342,11 @@ public class ShowSatellites extends Activity {
 		else if (key.equals("sensorSensitivity")) {
 			String sensitivity = sharedPreferences.getString(key, "medium");
 			if (sensitivity.equals("low")) {
-				sensorSensitivity = 20;
+				sensorSensitivity = 30;
 			} else if (sensitivity.equals("medium")) {
-				sensorSensitivity = 10;
+				sensorSensitivity = 15;
 			} else if (sensitivity.equals("high")) {
-				sensorSensitivity = 5;
+				sensorSensitivity = 10;
 			}
 
 			StereoView.textHeight = (int) StereoView.textSize;
@@ -464,10 +464,10 @@ public class ShowSatellites extends Activity {
 
 		sensorManager.registerListener(sensorEventListener,
 				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-				SensorManager.SENSOR_DELAY_UI);
+				SensorManager.SENSOR_DELAY_GAME);
 		sensorManager.registerListener(sensorEventListener,
 				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-				SensorManager.SENSOR_DELAY_UI);
+				SensorManager.SENSOR_DELAY_GAME);
 
 	}
 
