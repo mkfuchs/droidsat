@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import com.mkf.droidsat.StationLocation.LocationResult;
+
 import uk.me.chiandh.Lib.Hmelib;
 import uk.me.chiandh.Sputnik.Satellite;
 import uk.me.chiandh.Sputnik.SatellitePosition;
@@ -64,7 +66,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 public class ShowSatellites extends Activity {
-	
+
 	/** Called when the activity is first created. */
 	private static final int SENSOR_SAMPLE_SIZE = 5;
 	float heading = 0;
@@ -76,7 +78,7 @@ public class ShowSatellites extends Activity {
 	SensorManager sensorManager;
 	CameraPreview cameraPreview;
 	LocationManager locationManager;
-	static Location location;
+	static Location mLocation;
 	static boolean manualLocation = false;
 	static int latitude = 0;
 	static int longitude = 0;
@@ -99,14 +101,14 @@ public class ShowSatellites extends Activity {
 	public volatile static boolean orientationLocked = false;
 	public static SatellitePosition selectedSatPosn = null;
 	/* list of celestrak TLEs */
-	private static final String[] celestrakTles = { "tle-new",
-			"stations", "visual", "1999-025", "iridium-33-debris",
-			"cosmos-2251-debris", "weather", "noaa", "goes", "resource",
-			"sarsat", "dmc", "tdrss", "geo", "intelsat", "gorizont", "raduga",
-			"molniya", "iridium", "orbcomm", "globalstar", "amateur", "x-comm",
-			"other-comm", "gps-ops", "glo-ops", "galileo", "sbas", "nnss",
-			"musson", "science", "geodetic", "engineering", "military",
-			"radar", "cubesat", "other" };
+	private static final String[] celestrakTles = { "tle-new", "stations",
+			"visual", "1999-025", "iridium-33-debris", "cosmos-2251-debris",
+			"weather", "noaa", "goes", "resource", "sarsat", "dmc", "tdrss",
+			"geo", "intelsat", "gorizont", "raduga", "molniya", "iridium",
+			"orbcomm", "globalstar", "amateur", "x-comm", "other-comm",
+			"gps-ops", "glo-ops", "galileo", "sbas", "nnss", "musson",
+			"science", "geodetic", "engineering", "military", "radar",
+			"cubesat", "other" };
 	private static String availTles[] = { "" };
 	private static File tleDir;
 	private static byte[] tleBuf = new byte[8192];
@@ -152,6 +154,27 @@ public class ShowSatellites extends Activity {
 	private static volatile float[] accels = new float[3];
 	private static volatile boolean resetVideoProjectionRadius = false;
 	private static float rawHeading;
+	private StationLocation myLocation = new StationLocation();
+	boolean hasLocation = false;
+
+	public LocationResult locationResult = new LocationResult() {
+		@Override
+		public void gotLocation(final Location location) {
+
+			if (null != location) {
+				Log.d("location", "***got location");
+				mLocation = location;
+				hasLocation = true;
+				lat = mLocation.getLatitude();
+				lon = mLocation.getLongitude();
+				alt = mLocation.getAltitude();
+			} else {
+				Log.d("location", "*** null location");
+			}
+
+		}
+	};
+
 	private static OnSharedPreferenceChangeListener prefChangeListener = new OnSharedPreferenceChangeListener() {
 
 		public void onSharedPreferenceChanged(
@@ -495,6 +518,7 @@ public class ShowSatellites extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 
+		hasLocation = false;
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		stereoView = (StereoView) this.findViewById(R.id.stereoView);
@@ -505,6 +529,8 @@ public class ShowSatellites extends Activity {
 
 		tintPane = (ImageView) this.findViewById(R.id.tintPane);
 		getLocation();
+		//myLocation.getLocation(this, locationResult);
+
 		if (station == null) {
 			station = new Telescope();
 		}
@@ -568,27 +594,32 @@ public class ShowSatellites extends Activity {
 
 		if (manualLocation) {
 
-			if (null != location) {
-				location.setLatitude(manualLat);
-				location.setLongitude(manualLon);
-				location.setAltitude(0);
+			if (null != mLocation) {
+				mLocation.setLatitude(manualLat);
+				mLocation.setLongitude(manualLon);
+				mLocation.setAltitude(0);
 			}
-		} else {
-			if (null == locationManager) {
-				locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-			}
-			if (null != locationManager) {
 
-				location = locationManager
-						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-				if (location == null)
-					location = locationManager
-							.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-				if (location == null)
-					location = locationManager
-							.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-			}
+			lat = manualLat;
+			lon = manualLon;
+			alt = 0;
+
+		} else {
+			myLocation.getLocation(this, locationResult);
 		}
+
+		/*
+		 * { if (null == locationManager) { locationManager = (LocationManager)
+		 * getSystemService(Context.LOCATION_SERVICE); } if (null !=
+		 * locationManager) {
+		 * 
+		 * location = locationManager
+		 * .getLastKnownLocation(LocationManager.GPS_PROVIDER); if (location ==
+		 * null) location = locationManager
+		 * .getLastKnownLocation(LocationManager.NETWORK_PROVIDER); if (location
+		 * == null) location = locationManager
+		 * .getLastKnownLocation(LocationManager.PASSIVE_PROVIDER); } }
+		 */
 	}
 
 	private void refreshTleDir() {
@@ -658,10 +689,12 @@ public class ShowSatellites extends Activity {
 					previousTle = new String(selectedTle);
 					loadTle(selectedTle);
 					forceLoadTle = false;
+					forceResetLocation = false;
 				} else {
 
 					if (forceResetLocation) {
-						resetLocation();
+						// resetLocation();
+						loadTle(selectedTle);
 						forceResetLocation = false;
 					}
 					currentRealTime = System.currentTimeMillis();
@@ -711,6 +744,12 @@ public class ShowSatellites extends Activity {
 	private Runnable doUpdateSpinner = new Runnable() {
 		public void run() {
 			updateSpinner();
+		}
+	};
+
+	private Runnable doGetLocation = new Runnable() {
+		public void run() {
+			getLocation();
 		}
 	};
 
@@ -821,9 +860,12 @@ public class ShowSatellites extends Activity {
 			}
 
 			headingDiffs[lastHdiff++] = headingDiff;
-			System.arraycopy(headingDiffs, 0, sortedHeadingDiffs, 0, headingDiffs.length);
+			System.arraycopy(headingDiffs, 0, sortedHeadingDiffs, 0,
+					headingDiffs.length);
 			Arrays.sort(sortedHeadingDiffs);
-			_heading = _prevHeading + sortedHeadingDiffs[SENSOR_SAMPLE_SIZE/2] / sensorSensitivity;
+			_heading = _prevHeading
+					+ sortedHeadingDiffs[SENSOR_SAMPLE_SIZE / 2]
+					/ sensorSensitivity;
 
 		} else {
 			_heading = _prevHeading;
@@ -837,10 +879,12 @@ public class ShowSatellites extends Activity {
 			}
 
 			pitchDiffs[lastPdiff++] = pitchDiff;
-			System.arraycopy(pitchDiffs, 0, sortedPitchDiffs, 0, pitchDiffs.length);
+			System.arraycopy(pitchDiffs, 0, sortedPitchDiffs, 0,
+					pitchDiffs.length);
 			Arrays.sort(sortedPitchDiffs);
-			_pitch = _prevPitch + sortedPitchDiffs[SENSOR_SAMPLE_SIZE/2] / sensorSensitivity;
-			
+			_pitch = _prevPitch + sortedPitchDiffs[SENSOR_SAMPLE_SIZE / 2]
+					/ sensorSensitivity;
+
 		} else {
 			_pitch = _prevPitch;
 		}
@@ -886,58 +930,7 @@ public class ShowSatellites extends Activity {
 
 	}
 
-	private void toggleLock() {
-		orientationLocked = !orientationLocked;
 
-	}
-
-	private void resetLocation() {
-		TSAGeoMag geoMag = new TSAGeoMag();
-		boolean origOrientationLocked = orientationLocked;
-		if (!origOrientationLocked)
-			orientationLocked = true;
-
-		// disable spinner
-		handler.post(doDisableSpinner);
-		// satellitePositions.clear();
-		station.Init();
-		station.SetUTSystem();
-
-		getLocation();
-		if (location == null) {
-
-			if (manualLocation) {
-				lat = manualLat;
-				lon = manualLon;
-				alt = 0;
-			} else {
-				lat = 0;
-				lon = 0;
-				alt = 0;
-			}
-		} else {
-			lat = location.getLatitude();
-			lon = location.getLongitude();
-			alt = location.getAltitude();
-		}
-		magDeclination = geoMag.getDeclination(lat, lon);
-		latitude = (int) lat;
-		longitude = (int) lon;
-
-		station.SetGeodetic("Vancouver", lon / Hmelib.DEGPERRAD, lat
-				/ Hmelib.DEGPERRAD, alt / 1000000000);
-		satellite.Init();
-
-		// Satellite.showAllSats(satFileStream, station, satellitePositions);
-		// Collections.sort(satellitePositions, new
-		// SatellitePositionComparator());
-
-		handler.post(doUpdateSpinner);
-		handler.post(doEnableSpinner);
-		orientationLocked = origOrientationLocked;
-		updateSatelliteTrack = true;
-
-	}
 
 	private void loadTle(String tle) {
 
@@ -952,23 +945,29 @@ public class ShowSatellites extends Activity {
 		station.Init();
 		station.SetUTSystem();
 
-		getLocation();
-		if (location == null) {
-
-			if (manualLocation) {
-				lat = manualLat;
-				lon = manualLon;
-				alt = 0;
-			} else {
-				lat = 0;
-				lon = 0;
-				alt = 0;
-			}
+		// getLocation();
+		// myLocation.getLocation(this, locationResult);
+		if (manualLocation) {
+			lat = manualLat;
+			lon = manualLon;
+			alt = 0;
 		} else {
-			lat = location.getLatitude();
-			lon = location.getLongitude();
-			alt = location.getAltitude();
+			handler.post(doGetLocation);
+			if (null != mLocation) {
+				lat = mLocation.getLatitude();
+				lon = mLocation.getLongitude();
+				alt = mLocation.getAltitude();
+			}
 		}
+
+		/*
+		 * if (mLocation == null) {
+		 * 
+		 * if (manualLocation) { lat = manualLat; lon = manualLon; alt = 0; }
+		 * else { lat = 0; lon = 0; alt = 0; } } else { lat =
+		 * mLocation.getLatitude(); lon = mLocation.getLongitude(); alt =
+		 * mLocation.getAltitude(); }
+		 */
 		magDeclination = geoMag.getDeclination(lat, lon);
 		latitude = (int) lat;
 		longitude = (int) lon;
@@ -1069,11 +1068,24 @@ public class ShowSatellites extends Activity {
 
 		MenuItem menuItemData = menu.add(groupId, Menu.FIRST, menuItemOrder,
 				"update tles");
+		MenuItem menuItemLocation = menu.add(groupId, Menu.FIRST, menuItemOrder,
+				"update location");
 		MenuItem editPreference = menu.add(groupId, Menu.FIRST + 1,
 				menuItemOrder, "preferences");
 		SubMenu tleMenu = menu.addSubMenu("choose tles");
 		tleMenuId = tleMenu.getItem().getItemId();
 		SubMenu speedMenu = menu.addSubMenu("playback speed");
+		
+		menuItemLocation
+				.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+					public boolean onMenuItemClick(MenuItem m) {
+
+						forceLoadTle = true;
+						return true;
+
+					}
+				});
+		;
 
 		menuItemData.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem m) {
@@ -1225,58 +1237,6 @@ public class ShowSatellites extends Activity {
 		refreshTleDir();
 	}
 
-	private void getSatZipDataFromNet() {
-
-		String prefix = "https://sites.google.com/site/droidsatproject/celestraktles/";
-		final int BUFFER = 16 * 1024;
-
-		try {
-
-			URL satDataUrl = new URL(prefix + "tles.zip");
-
-			InputStream is = satDataUrl.openStream();
-
-			FileOutputStream fos = openFileOutput("tles.zip",
-					Context.MODE_PRIVATE);
-			int b;
-			while ((b = is.read()) != -1) {
-				fos.write(b);
-			}
-			is.close();
-			fos.close();
-		} catch (Exception e) {
-			System.out.println("error in file or url reading");
-
-		}
-		try {
-
-			BufferedOutputStream dest = null;
-			FileInputStream fis = openFileInput("tles.zip");
-			ZipInputStream zis = new ZipInputStream(new BufferedInputStream(
-					fis, BUFFER));
-			ZipEntry entry;
-			while ((entry = zis.getNextEntry()) != null) {
-				System.out.println("Extracting: " + entry);
-				int count;
-				byte data[] = new byte[BUFFER];
-				// write the files to the disk
-				FileOutputStream fos = openFileOutput(entry.getName(),
-						Context.MODE_PRIVATE);
-				dest = new BufferedOutputStream(fos, BUFFER);
-				while ((count = zis.read(data, 0, BUFFER)) != -1) {
-					dest.write(data, 0, count);
-				}
-				dest.flush();
-				dest.close();
-			}
-			zis.close();
-		} catch (Exception e) {
-			System.out.println("error writing");
-			System.out.println(e);
-
-		}
-
-	}
 
 	private boolean externalStorageAvailable() {
 		boolean mExternalStorageAvailable = false;
