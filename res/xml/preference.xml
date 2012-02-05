@@ -22,24 +22,24 @@
 		
 		<ListPreference android:entries="@array/gridSizes"
 			android:key="altAzGridSize" android:entryValues="@array/gridSizes"
-			android:summary="alt/az grid size (degrees)" android:defaultValue="45" android:dependency="altAzOn"></ListPreference>
+			android:summary="alt/az grid size (degrees)" android:defaultValue="30" android:dependency="altAzOn"></ListPreference>
 		<ListPreference android:entries="@array/textSizes"
 			android:summary="text size" android:key="textSize"
 			android:entryValues="@array/textSizes" android:defaultValue="medium"></ListPreference>
 		<ListPreference android:entries="@array/forgroundColors"
 			android:summary="text colour" android:key="textColor"
-			android:entryValues="@array/forgroundColors" android:defaultValue="white"></ListPreference>
+			android:entryValues="@array/forgroundColors" android:defaultValue="green"></ListPreference>
 		<ListPreference android:entries="@array/forgroundColors"
 			android:summary="satellite colour" android:key="satColor"
-			android:entryValues="@array/forgroundColors" android:defaultValue="white"></ListPreference>
+			android:entryValues="@array/forgroundColors" android:defaultValue="red"></ListPreference>
 		<ListPreference android:entries="@array/forgroundColors"
 			android:summary="alt/az grid colour" android:key="altAzColor"
-			android:entryValues="@array/forgroundColors" android:defaultValue="white" android:dependency="altAzOn"></ListPreference>
+			android:entryValues="@array/forgroundColors" android:defaultValue="green" android:dependency="altAzOn"></ListPreference>
 		<ListPreference android:entries="@array/smoothing"
 			android:key="altAzSmoothing"
 			android:entryValues="@array/smoothing" android:summary="alt/az grid quality" android:defaultValue="medium" android:dependency="altAzOn"></ListPreference>
 		<ListPreference android:entries="@array/smoothing"
-			android:entryValues="@array/smoothing" android:summary="orientation sensor and compass sensitivity" android:defaultValue="low" android:key="sensorSensitivity"></ListPreference>
+			android:entryValues="@array/smoothing" android:summary="orientation sensor and compass sensitivity" android:defaultValue="high" android:key="sensorSensitivity"></ListPreference>
 	
 </PreferenceCategory>
 

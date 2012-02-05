@@ -82,8 +82,8 @@ public class ShowSatellites extends Activity {
 	static boolean manualLocation = false;
 	static int latitude = 0;
 	static int longitude = 0;
-	static double lat = 49;
-	static double lon = -122;
+	static double lat = 0;
+	static double lon = 0;
 	static double alt = 0;
 	// EditText bearingText;
 	EditText pitchRollText;
