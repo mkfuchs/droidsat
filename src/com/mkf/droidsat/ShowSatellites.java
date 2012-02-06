@@ -80,11 +80,11 @@ public class ShowSatellites extends Activity {
 	LocationManager locationManager;
 	static Location mLocation;
 	static boolean manualLocation = false;
-	static int latitude = 0;
-	static int longitude = 0;
-	static double lat = 0;
-	static double lon = 0;
-	static double alt = 0;
+	public static volatile int latitude = 0;
+	public static volatile int longitude = 0;
+	public static volatile double lat = 0;
+	public static volatile double lon = 0;
+	public static volatile double alt = 0;
 	// EditText bearingText;
 	EditText pitchRollText;
 	private static Spinner satellites;
@@ -529,7 +529,6 @@ public class ShowSatellites extends Activity {
 
 		tintPane = (ImageView) this.findViewById(R.id.tintPane);
 		getLocation();
-		//myLocation.getLocation(this, locationResult);
 
 		if (station == null) {
 			station = new Telescope();
@@ -603,23 +602,15 @@ public class ShowSatellites extends Activity {
 			lat = manualLat;
 			lon = manualLon;
 			alt = 0;
+			
 
 		} else {
 			myLocation.getLocation(this, locationResult);
 		}
+		
+		TSAGeoMag geoMag = new TSAGeoMag();
+		magDeclination = geoMag.getDeclination(lat, lon);
 
-		/*
-		 * { if (null == locationManager) { locationManager = (LocationManager)
-		 * getSystemService(Context.LOCATION_SERVICE); } if (null !=
-		 * locationManager) {
-		 * 
-		 * location = locationManager
-		 * .getLastKnownLocation(LocationManager.GPS_PROVIDER); if (location ==
-		 * null) location = locationManager
-		 * .getLastKnownLocation(LocationManager.NETWORK_PROVIDER); if (location
-		 * == null) location = locationManager
-		 * .getLastKnownLocation(LocationManager.PASSIVE_PROVIDER); } }
-		 */
 	}
 
 	private void refreshTleDir() {
@@ -693,7 +684,6 @@ public class ShowSatellites extends Activity {
 				} else {
 
 					if (forceResetLocation) {
-						// resetLocation();
 						loadTle(selectedTle);
 						forceResetLocation = false;
 					}
@@ -934,7 +924,6 @@ public class ShowSatellites extends Activity {
 
 	private void loadTle(String tle) {
 
-		TSAGeoMag geoMag = new TSAGeoMag();
 		boolean origOrientationLocked = orientationLocked;
 		if (!origOrientationLocked)
 			orientationLocked = true;
@@ -945,9 +934,7 @@ public class ShowSatellites extends Activity {
 		station.Init();
 		station.SetUTSystem();
 
-		// getLocation();
-		// myLocation.getLocation(this, locationResult);
-		if (manualLocation) {
+		/*if (manualLocation) {
 			lat = manualLat;
 			lon = manualLon;
 			alt = 0;
@@ -958,17 +945,9 @@ public class ShowSatellites extends Activity {
 				lon = mLocation.getLongitude();
 				alt = mLocation.getAltitude();
 			}
-		}
+		}*/
+		handler.post(doGetLocation);
 
-		/*
-		 * if (mLocation == null) {
-		 * 
-		 * if (manualLocation) { lat = manualLat; lon = manualLon; alt = 0; }
-		 * else { lat = 0; lon = 0; alt = 0; } } else { lat =
-		 * mLocation.getLatitude(); lon = mLocation.getLongitude(); alt =
-		 * mLocation.getAltitude(); }
-		 */
-		magDeclination = geoMag.getDeclination(lat, lon);
 		latitude = (int) lat;
 		longitude = (int) lon;
 
