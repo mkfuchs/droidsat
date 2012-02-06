@@ -171,6 +171,8 @@ public class ShowSatellites extends Activity {
 			} else {
 				Log.d("location", "*** null location");
 			}
+			TSAGeoMag geoMag = new TSAGeoMag();
+			magDeclination = geoMag.getDeclination(lat, lon);
 
 		}
 	};
