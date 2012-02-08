@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import com.mkf.droidsat.StationLocation.LocationResult;
-
 import uk.me.chiandh.Lib.Hmelib;
 import uk.me.chiandh.Sputnik.Satellite;
 import uk.me.chiandh.Sputnik.SatellitePosition;
@@ -64,6 +62,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import com.mkf.droidsat.StationLocation.LocationResult;
 
 public class ShowSatellites extends Activity {
 
@@ -156,6 +156,12 @@ public class ShowSatellites extends Activity {
 	private static float rawHeading;
 	private StationLocation myLocation = new StationLocation();
 	boolean hasLocation = false;
+	private static volatile Bitmap tintBitmap1 = null;
+	private static volatile Bitmap tintBitmap2 = null;
+	int prevHeight = 0;
+	int prevWidth = 0;
+	int currentHeight = 0;
+	int currentWidth = 0;
 
 	public LocationResult locationResult = new LocationResult() {
 		@Override
@@ -171,9 +177,6 @@ public class ShowSatellites extends Activity {
 			} else {
 				Log.d("location", "*** null location");
 			}
-			TSAGeoMag geoMag = new TSAGeoMag();
-			magDeclination = geoMag.getDeclination(lat, lon);
-
 		}
 	};
 
@@ -568,13 +571,19 @@ public class ShowSatellites extends Activity {
 
 		updateSpinner();
 
-		Bitmap tintBitmap = Bitmap.createBitmap(getWindowManager()
-				.getDefaultDisplay().getWidth(), getWindowManager()
-				.getDefaultDisplay().getHeight(), Bitmap.Config.ARGB_8888);
-		tintBitmap.eraseColor(Color.RED);
-		tintPane.setImageBitmap(tintBitmap);
+		currentHeight = getWindowManager().getDefaultDisplay().getHeight();
+		currentWidth = getWindowManager().getDefaultDisplay().getWidth();
+		prevHeight = currentHeight;
+		prevWidth = currentWidth;
+		tintBitmap1 = Bitmap.createBitmap(currentWidth, currentHeight,
+				Bitmap.Config.ARGB_8888);
+		tintBitmap1.eraseColor(Color.RED);
+		tintBitmap2 = Bitmap.createBitmap(currentHeight, currentWidth,
+				Bitmap.Config.ARGB_8888);
+		tintBitmap2.eraseColor(Color.RED);
+		tintPane.setImageBitmap(tintBitmap1);
 		tintPane.setAlpha(0);
-		ShowSatellites.instance = this.getApplicationContext();
+		ShowSatellites.instance = this.getApplicationContext();//
 
 		if (VERSION.SDK_INT < 8) {
 			StereoView.segmentsPerLine = 2;
@@ -604,12 +613,11 @@ public class ShowSatellites extends Activity {
 			lat = manualLat;
 			lon = manualLon;
 			alt = 0;
-			
 
 		} else {
 			myLocation.getLocation(this, locationResult);
 		}
-		
+
 		TSAGeoMag geoMag = new TSAGeoMag();
 		magDeclination = geoMag.getDeclination(lat, lon);
 
@@ -791,6 +799,8 @@ public class ShowSatellites extends Activity {
 	};
 
 	private void updateGui() {
+		currentHeight = getWindowManager().getDefaultDisplay().getHeight();
+		currentWidth = getWindowManager().getDefaultDisplay().getWidth();
 		int selection = satellites.getSelectedItemPosition();
 		satellites.setAdapter(satPosnsAdapter);
 		if (!loadingTle && selection != AdapterView.INVALID_POSITION
@@ -803,7 +813,12 @@ public class ShowSatellites extends Activity {
 			prevSatelliteSelection = selection;
 		}
 		if (nightVis) {
+			if (currentHeight != prevHeight && currentWidth != prevWidth) {
+				tintPane.setImageBitmap(Bitmap.createScaledBitmap(tintBitmap1,
+						currentWidth, currentHeight, true));
+			}
 			tintPane.setAlpha(128);
+
 		} else {
 			tintPane.setAlpha(0);
 		}
@@ -833,6 +848,8 @@ public class ShowSatellites extends Activity {
 				stereoView.setPitch(90);
 			}
 		}
+		prevHeight = currentHeight;
+		prevWidth = currentWidth;
 	}
 
 	private void updateOrientation(float _heading, float _pitch, float _roll,
@@ -922,8 +939,6 @@ public class ShowSatellites extends Activity {
 
 	}
 
-
-
 	private void loadTle(String tle) {
 
 		boolean origOrientationLocked = orientationLocked;
@@ -936,18 +951,12 @@ public class ShowSatellites extends Activity {
 		station.Init();
 		station.SetUTSystem();
 
-		/*if (manualLocation) {
-			lat = manualLat;
-			lon = manualLon;
-			alt = 0;
-		} else {
-			handler.post(doGetLocation);
-			if (null != mLocation) {
-				lat = mLocation.getLatitude();
-				lon = mLocation.getLongitude();
-				alt = mLocation.getAltitude();
-			}
-		}*/
+		/*
+		 * if (manualLocation) { lat = manualLat; lon = manualLon; alt = 0; }
+		 * else { handler.post(doGetLocation); if (null != mLocation) { lat =
+		 * mLocation.getLatitude(); lon = mLocation.getLongitude(); alt =
+		 * mLocation.getAltitude(); } }
+		 */
 		handler.post(doGetLocation);
 
 		latitude = (int) lat;
@@ -1049,14 +1058,14 @@ public class ShowSatellites extends Activity {
 
 		MenuItem menuItemData = menu.add(groupId, Menu.FIRST, menuItemOrder,
 				"update tles");
-		MenuItem menuItemLocation = menu.add(groupId, Menu.FIRST, menuItemOrder,
-				"update location");
+		MenuItem menuItemLocation = menu.add(groupId, Menu.FIRST,
+				menuItemOrder, "update location");
 		MenuItem editPreference = menu.add(groupId, Menu.FIRST + 1,
 				menuItemOrder, "preferences");
 		SubMenu tleMenu = menu.addSubMenu("choose tles");
 		tleMenuId = tleMenu.getItem().getItemId();
 		SubMenu speedMenu = menu.addSubMenu("playback speed");
-		
+
 		menuItemLocation
 				.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 					public boolean onMenuItemClick(MenuItem m) {
@@ -1217,7 +1226,6 @@ public class ShowSatellites extends Activity {
 
 		refreshTleDir();
 	}
-
 
 	private boolean externalStorageAvailable() {
 		boolean mExternalStorageAvailable = false;
