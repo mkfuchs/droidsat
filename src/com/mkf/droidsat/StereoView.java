@@ -414,7 +414,7 @@ public class StereoView extends View {
 	//canvas.rotate(-roll, getWidth()/2, getHeight()/2);
 		canvas.drawText("Az/El " + String.format("%3d", (int)heading) + " " + String.format("%-2d", (int)pitch), displayWidth - 18 * textHeight/2, 0 + textHeight,
 				textPaint);
-		canvas.drawText("Mag Var " + (int) ShowSatellites.magDeclination, displayWidth - 18 * textHeight/2, 0 + 2 * textHeight, textPaint);
+		canvas.drawText("Mag Var " + (int) ShowSatellites.magDeclination +" ", displayWidth - 18 * textHeight/2, 0 + 2 * textHeight, textPaint);
 		canvas.drawText("Loc " + " " + String.format("%.2f", ShowSatellites.lat) + " "
 				+ String.format("%.2f", ShowSatellites.lon), displayWidth - 18 * textHeight/2, 0 + 3 * textHeight, textPaint);
 		canvas.drawText("File: " + ShowSatellites.selectedTle + " "
