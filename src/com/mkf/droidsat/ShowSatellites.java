@@ -379,9 +379,7 @@ public class ShowSatellites extends Activity {
 				sensorSensitivity = 15;
 			} else if (sensitivity.equals("high")) {
 				sensorSensitivity = 10;
-			}
-			else
-			{
+			} else {
 				sensorSensitivity = 30;
 			}
 
@@ -398,8 +396,8 @@ public class ShowSatellites extends Activity {
 		else if (key.equals("manualLat")) {
 			try {
 
-				manualLat = Double.valueOf(sharedPreferences.getString(key,
-						"0"));
+				manualLat = Double.valueOf(sharedPreferences
+						.getString(key, "0"));
 				if (90 < manualLat || -90 > manualLat) {
 					throw (new Exception());
 				}
@@ -413,8 +411,8 @@ public class ShowSatellites extends Activity {
 		else if (key.equals("manualLon")) {
 			try {
 
-				manualLon = Double.valueOf(sharedPreferences.getString(key,
-						"0"));
+				manualLon = Double.valueOf(sharedPreferences
+						.getString(key, "0"));
 				if (180 < manualLon || -180 > manualLon) {
 					throw (new Exception());
 				}
@@ -486,13 +484,23 @@ public class ShowSatellites extends Activity {
 
 	@Override
 	protected void onRestart() {
-		if (threadSuspended) {			
+		if (threadSuspended) {
 			synchronized (pauseLock) {
 				threadSuspended = false;
 				pauseLock.notifyAll();
 			}
 		}
 		getLocation();
+		sensorManager.unregisterListener(sensorEventListener,
+				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD));
+		sensorManager.unregisterListener(sensorEventListener,
+				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
+		sensorManager.registerListener(sensorEventListener,
+				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+				SensorManager.SENSOR_DELAY_GAME);
+		sensorManager.registerListener(sensorEventListener,
+				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+				SensorManager.SENSOR_DELAY_GAME);
 		super.onRestart();
 	}
 
@@ -504,9 +512,9 @@ public class ShowSatellites extends Activity {
 				pauseLock.notifyAll();
 			}
 		}
-		
-		getLocation();		
-		
+
+		getLocation();
+
 		sensorManager.unregisterListener(sensorEventListener,
 				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD));
 		sensorManager.unregisterListener(sensorEventListener,
@@ -520,11 +528,10 @@ public class ShowSatellites extends Activity {
 		super.onResume();
 
 	}
-	
 
 	@Override
 	protected void onPause() {
-		
+
 		sensorManager.unregisterListener(sensorEventListener,
 				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD));
 		sensorManager.unregisterListener(sensorEventListener,
@@ -631,6 +638,17 @@ public class ShowSatellites extends Activity {
 		prefs.registerOnSharedPreferenceChangeListener(prefChangeListener);
 		updateOrientation(0, 0, 0, true, true);
 
+		sensorManager.unregisterListener(sensorEventListener,
+				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD));
+		sensorManager.unregisterListener(sensorEventListener,
+				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
+		sensorManager.registerListener(sensorEventListener,
+				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+				SensorManager.SENSOR_DELAY_GAME);
+		sensorManager.registerListener(sensorEventListener,
+				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+				SensorManager.SENSOR_DELAY_GAME);
+
 	}
 
 	private void getLocation() {
@@ -650,8 +668,6 @@ public class ShowSatellites extends Activity {
 		} else {
 			myLocation.getLocation(this, locationResult);
 		}
-
-		
 
 	}
 
@@ -690,7 +706,7 @@ public class ShowSatellites extends Activity {
 	}
 
 	private Runnable doBackgroundUpdate = new Runnable() {
-		
+
 		public void run() {
 			updateSatPositions();
 		}
@@ -712,7 +728,7 @@ public class ShowSatellites extends Activity {
 					}
 				}
 			}
-			
+
 			if (!stereoView.updatingDisplay && !threadSuspended) {
 
 				if (gettingTles) {
@@ -739,8 +755,8 @@ public class ShowSatellites extends Activity {
 					lastRealTime = currentRealTime;
 					lastSimTime = currentSimTime;
 
-					station.SetGeodetic("Vancouver", lon / Hmelib.DEGPERRAD, lat
-							/ Hmelib.DEGPERRAD, alt / 1000000000);
+					station.SetGeodetic("Vancouver", lon / Hmelib.DEGPERRAD,
+							lat / Hmelib.DEGPERRAD, alt / 1000000000);
 					if (selectedSpeed == 1) {
 						station.SetUTSystem();
 						currentSimTime = currentRealTime;
@@ -959,8 +975,9 @@ public class ShowSatellites extends Activity {
 		_prevPitch = _pitch;
 	}
 
-	private class SatellitePositionComparator implements Comparator {
-		public int compare(Object s1, Object s2) {
+	private class SatellitePositionComparator implements
+			Comparator<SatellitePosition> {
+		public int compare(SatellitePosition s1, SatellitePosition s2) {
 
 			return s1.toString().compareTo(s2.toString());
 
@@ -1272,7 +1289,8 @@ public class ShowSatellites extends Activity {
 
 		if (Environment.MEDIA_MOUNTED.equals(state)) {
 			// We can read and write the media
-			mExternalStorageAvailable = mExternalStorageWriteable = true;
+			mExternalStorageWriteable = true;
+			mExternalStorageAvailable = mExternalStorageWriteable;
 		} else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
 			// We can only read the media
 			mExternalStorageAvailable = true;
