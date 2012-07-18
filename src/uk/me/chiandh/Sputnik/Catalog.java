@@ -1216,11 +1216,11 @@ static     double vec[] = {0.,0.,0.};
    *   Three floating point numbers containing the x, y and z coordinates.
    *   These should normally be in Gm. */
 
-  protected void SetJ2000(int aIndex, double aTriplet[])
-  {
-    int    i;
-    for (i = 0; i < 3; i++) itsR[3*aIndex+i] = aTriplet[i];
-  }
+	protected void SetJ2000(int aIndex, double aTriplet[]) {
+		int i;
+		for (i = 0; i < 3; i++)
+			itsR[3 * aIndex + i] = aTriplet[i];
+	}
 
 
   /**

@@ -10,8 +10,6 @@ package com.mkf.droidsat;
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
  */
 
-import java.sql.Date;
-
 import uk.me.chiandh.Sputnik.SatellitePosition;
 import android.content.Context;
 import android.content.res.Resources;
@@ -84,9 +82,9 @@ public class StereoView extends View {
 
 	public static volatile int trackballSpeed = 2;
 	public static volatile float textSize = 16;
-	private static java.text.DateFormat df = java.text.DateFormat
+	/*private static java.text.DateFormat df = java.text.DateFormat
 			.getTimeInstance();
-	private static String displayTimeString;
+	private static String displayTimeString;*/
 
 	private class Coord {
 		float x;
@@ -132,8 +130,8 @@ public class StereoView extends View {
 
 	private void updatePitchRadians() {
 		pitchRadians = (float) Math.toRadians(pitch);
-		cosTheta1 = Math.cos(pitchRadians);
-		sinTheta1 = Math.sin(pitchRadians);
+		cosTheta1 = android.util.FloatMath.cos(pitchRadians);
+		sinTheta1 = android.util.FloatMath.sin(pitchRadians);
 	}
 
 	public float getPitch() {
@@ -249,8 +247,6 @@ public class StereoView extends View {
 		int py = displayHeight / 2;
 		// canvas.rotate(-roll, getWidth()/2, getHeight()/2);
 
-		displayTimeString = df.format(new Date(ShowSatellites.displayTime));
-
 		if (textPaint.getTextSize() != textSize) {
 			textPaint.setTextSize(textSize);
 		}
@@ -276,6 +272,32 @@ public class StereoView extends View {
 
 			// need to check here
 
+			//If satellite data displayed, check if we have to clear it			
+			//Clear displayed satellite if new file loaded
+			if (ShowSatellites.clearTargetString) {
+				target = null;
+				targetSatPos = null;
+				ShowSatellites.clearTargetString = false;
+			} else if (target != null && targetSatPos != null) {
+				// Clear displayed satellite if not within reticle range
+				stereoProjRad(headingRadians, pitchRadians,
+						targetSatPos.azRadians, targetSatPos.elRadians,
+						stereoCoord);
+				if (!ShowSatellites.sensorOrientationOn
+						&& (Math.abs(px - stereoCoord.x) > reticleRadius)
+						&& (Math.abs(py - stereoCoord.y) > reticleRadius)) {
+
+					target = null;
+					targetSatPos = null;
+
+				} else if ((Math.abs(trackballX - stereoCoord.x) > reticleRadius)
+						&& (Math.abs(trackballY - stereoCoord.y) > reticleRadius)) {
+
+					target = null;
+					targetSatPos = null;
+				}
+			}
+			
 			try {
 				for (SatellitePosition satPos : ShowSatellites.satellitePositions) {
 
@@ -372,6 +394,7 @@ public class StereoView extends View {
 						+ e);
 			}
 		}
+		
 		if (ShowSatellites.loadingTle)
 			canvas.drawText("Loading tle", px - 20, py - 20, textPaint);
 		else {
@@ -403,8 +426,10 @@ public class StereoView extends View {
 		canvas.drawText("File: " + ShowSatellites.selectedTle + " "
 				+ ShowSatellites.selectedSpeed + "X", displayWidth - 18
 				* textHeight / 2, 4 * textHeight, textPaint);
-		canvas.drawText(displayTimeString, displayWidth - 18 * textHeight / 2,
-				5 * textHeight, textPaint);
+		if (ShowSatellites.displayTimeString != null) {
+			canvas.drawText(ShowSatellites.displayTimeString, displayWidth - 18
+					* textHeight / 2, 5 * textHeight, textPaint);
+		}
 		if (ShowSatellites.gettingTles) {
 			canvas.drawText("Downloading celestrak.net, amsat.org", 0,
 					0 + 8 * textHeight, textPaint);

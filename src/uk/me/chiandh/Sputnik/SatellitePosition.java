@@ -1,7 +1,11 @@
 package uk.me.chiandh.Sputnik;
 
 
+
 public class SatellitePosition {
+	/**
+	 * 
+	 */
 	public String name;
 	public StringBuffer displayString;
 	public double azimuth;

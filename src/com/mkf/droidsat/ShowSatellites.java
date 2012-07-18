@@ -17,6 +17,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,6 +30,7 @@ import uk.me.chiandh.Lib.Hmelib;
 import uk.me.chiandh.Sputnik.Satellite;
 import uk.me.chiandh.Sputnik.SatellitePosition;
 import uk.me.chiandh.Sputnik.SatelliteTrack;
+import uk.me.chiandh.Sputnik.StarPosition;
 import uk.me.chiandh.Sputnik.Telescope;
 import android.app.Activity;
 import android.content.Context;
@@ -90,7 +92,7 @@ public class ShowSatellites extends Activity {
 	private static Spinner satellites;
 	private static ImageView tintPane;
 	public static volatile ArrayList<SatellitePosition> satellitePositions = new ArrayList<SatellitePosition>();
-	private static Satellite satellite = new Satellite();
+	public static volatile ArrayList<StarPosition> starPositions = new ArrayList<StarPosition>();
 	private static Telescope station = new Telescope();
 	public static volatile SatelliteTrack satelliteTrack;
 	public static volatile boolean updateSatelliteTrack = false;
@@ -99,7 +101,7 @@ public class ShowSatellites extends Activity {
 	private ArrayAdapter<SatellitePosition> satPosnsAdapter;
 	private Handler handler = new Handler();
 	public volatile static boolean orientationLocked = false;
-	public static SatellitePosition selectedSatPosn = null;
+	public static volatile SatellitePosition selectedSatPosn = null;
 	/* list of celestrak TLEs */
 	private static final String[] celestrakTles = { "tle-new", "stations",
 			"visual", "1999-025", "iridium-33-debris", "cosmos-2251-debris",
@@ -164,6 +166,15 @@ public class ShowSatellites extends Activity {
 	int prevWidth = 0;
 	int currentHeight = 0;
 	int currentWidth = 0;
+	
+	private static Sensor compass = null;
+	private static Sensor accelerometer = null;
+	private static volatile int selectedSatelliteIndex = 0;
+	private static java.text.DateFormat df = java.text.DateFormat
+			.getTimeInstance();
+	public static volatile String displayTimeString;
+	public static volatile boolean clearTargetString = false;
+	
 
 	public LocationResult locationResult = new LocationResult() {
 		@Override
@@ -186,6 +197,7 @@ public class ShowSatellites extends Activity {
 
 	private static OnSharedPreferenceChangeListener prefChangeListener = new OnSharedPreferenceChangeListener() {
 
+		@Override
 		public void onSharedPreferenceChanged(
 				SharedPreferences sharedPreferences, String key) {
 
@@ -424,64 +436,69 @@ public class ShowSatellites extends Activity {
 		}
 
 	}
+	
+	private final SensorEventListener createSensorEventListener() {
+		
+		return new SensorEventListener() {
 
-	private final SensorEventListener sensorEventListener = new SensorEventListener() {
+			@Override
+			public void onSensorChanged(SensorEvent event) {
+				if (sensorOrientationOn || video) {// always use sensor orientation
+													// when video is on
 
-		@Override
-		public void onSensorChanged(SensorEvent event) {
-			if (sensorOrientationOn || video) {// always use sensor orientation
-												// when video is on
+					int type = event.sensor.getType();
+					boolean magChanged = false;
+					boolean accelChanged = false;
 
-				int type = event.sensor.getType();
-				boolean magChanged = false;
-				boolean accelChanged = false;
+					switch (type) {
+					case Sensor.TYPE_MAGNETIC_FIELD:
+						mags = event.values;
+						magChanged = true;
+						break;
+					case Sensor.TYPE_ACCELEROMETER:
+						accels = event.values;
+						accelChanged = true;
+						break;
+					}
 
-				switch (type) {
-				case Sensor.TYPE_MAGNETIC_FIELD:
-					mags = event.values;
-					magChanged = true;
-					break;
-				case Sensor.TYPE_ACCELEROMETER:
-					accels = event.values;
-					accelChanged = true;
-					break;
-				}
+					if (mags != null && accels != null
+							&& (accelChanged || magChanged)) {
 
-				if (mags != null && accels != null
-						&& (accelChanged || magChanged)) {
+						SensorManager.getRotationMatrix(Rm, Im, accels, mags);
+						SensorManager.remapCoordinateSystem(Rm,
+								SensorManager.AXIS_X, SensorManager.AXIS_Z, outRm);
+						SensorManager.getOrientation(outRm, valuesM);
+						rawHeading = (float) Math.toDegrees(valuesM[0])
+								+ (float) magDeclination;
+						if (rawHeading > 360)
+							rawHeading = rawHeading % 360;
+						if (rawHeading < 0)
+							rawHeading = (rawHeading + 360) % 360;
 
-					SensorManager.getRotationMatrix(Rm, Im, accels, mags);
-					SensorManager.remapCoordinateSystem(Rm,
-							SensorManager.AXIS_X, SensorManager.AXIS_Z, outRm);
-					SensorManager.getOrientation(outRm, valuesM);
-					rawHeading = (float) Math.toDegrees(valuesM[0])
-							+ (float) magDeclination;
-					if (rawHeading > 360)
-						rawHeading = rawHeading % 360;
-					if (rawHeading < 0)
-						rawHeading = (rawHeading + 360) % 360;
+						updateOrientation(rawHeading,
+								(float) Math.toDegrees(valuesM[1]) * -1,
+								(float) Math.toDegrees(valuesM[2]), magChanged,
+								accelChanged);
 
-					updateOrientation(rawHeading,
-							(float) Math.toDegrees(valuesM[1]) * -1,
-							(float) Math.toDegrees(valuesM[2]), magChanged,
-							accelChanged);
+						magChanged = false;
+						accelChanged = false;
 
-					magChanged = false;
-					accelChanged = false;
+					}
 
 				}
 
 			}
 
-		}
+			@Override
+			public void onAccuracyChanged(Sensor arg0, int arg1) {
+				
+			}
 
-		public void onAccuracyChanged(Sensor arg0, int arg1) {
-			// TODO Auto-generated method stub
+		};
+	}
 
-		}
-
-	};
-
+	private SensorEventListener sensorEventListener = createSensorEventListener();
+	
 	@Override
 	protected void onRestart() {
 		if (threadSuspended) {
@@ -490,17 +507,9 @@ public class ShowSatellites extends Activity {
 				pauseLock.notifyAll();
 			}
 		}
-		getLocation();
-		sensorManager.unregisterListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD));
-		sensorManager.unregisterListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
-		sensorManager.registerListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-				SensorManager.SENSOR_DELAY_GAME);
-		sensorManager.registerListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-				SensorManager.SENSOR_DELAY_GAME);
+		
+		getLocation();		
+		restartSensorManager();
 		super.onRestart();
 	}
 
@@ -514,31 +523,58 @@ public class ShowSatellites extends Activity {
 		}
 
 		getLocation();
-
-		sensorManager.unregisterListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD));
-		sensorManager.unregisterListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
-		sensorManager.registerListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-				SensorManager.SENSOR_DELAY_GAME);
-		sensorManager.registerListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-				SensorManager.SENSOR_DELAY_GAME);
+		restartSensorManager();
 		super.onResume();
 
+	}
+
+	private void stopSensorManager() {
+		
+		if (null != sensorManager) {
+			sensorManager.unregisterListener(sensorEventListener,
+					sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD));
+			sensorManager.unregisterListener(sensorEventListener,
+					sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
+		}
+		
+		sensorEventListener = null;
+		sensorManager = null;
+		compass = null;
+		accelerometer = null;
+	}
+
+	private void restartSensorManager() {
+		
+		for (int i = 0; i < 3; i++) {
+			
+			stopSensorManager();
+			try {
+				Thread.sleep(125);
+			} catch (InterruptedException e) {
+			}
+			sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+			compass = sensorManager
+					.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+			accelerometer = sensorManager
+					.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+			sensorEventListener = createSensorEventListener();
+			sensorManager.registerListener(sensorEventListener, compass,
+					SensorManager.SENSOR_DELAY_GAME);
+			sensorManager.registerListener(sensorEventListener, accelerometer,
+					SensorManager.SENSOR_DELAY_GAME);
+		}
 	}
 
 	@Override
 	protected void onPause() {
 
-		sensorManager.unregisterListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD));
-		sensorManager.unregisterListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
+		stopSensorManager();
+		
 		synchronized (pauseLock) {
 			threadSuspended = true;
 		}
+		
 		if (this.cameraPreview != null && this.cameraPreview.inPreview) {
 			this.cameraPreview.turnOff();
 		}
@@ -548,13 +584,38 @@ public class ShowSatellites extends Activity {
 
 	@Override
 	protected void onStop() {
+		
 		synchronized (pauseLock) {
 			threadSuspended = true;
 		}
+		
 		if (this.cameraPreview != null && this.cameraPreview.inPreview) {
 			this.cameraPreview.turnOff();
 		}
+		
+		stopSensorManager();
 		super.onStop();
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle savedInstanceState) {
+	  super.onSaveInstanceState(savedInstanceState);
+	  // Save UI state changes to the savedInstanceState.
+	  // This bundle will be passed to onCreate if the process is
+	  // killed and restarted.
+	  savedInstanceState.putString("selectedTle", selectedTle);
+	  savedInstanceState.putInt("selectedSatelliteIndex", selectedSatelliteIndex);
+	}
+	
+	@Override
+	public void onRestoreInstanceState(Bundle savedInstanceState) {
+	  super.onRestoreInstanceState(savedInstanceState);
+	  // Restore UI state from the savedInstanceState.
+	  // This bundle has also been passed to onCreate.
+	  selectedTle = savedInstanceState.getString("selectedTle");
+	  previousTle = selectedTle;
+	  selectedSatelliteIndex = savedInstanceState.getInt("selectedSatelliteIndex");
+	  updateSatelliteTrack = true;
 	}
 
 	@Override
@@ -567,9 +628,7 @@ public class ShowSatellites extends Activity {
 			stereoView = (StereoView) this.findViewById(R.id.stereoView);
 		}
 		cameraPreview = (CameraPreview) this.findViewById(R.id.cameraPreview);
-		if (null == sensorManager) {
-			sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-		}
+		restartSensorManager();
 		satellites = (Spinner) this.findViewById(R.id.satellites);
 
 		tintPane = (ImageView) this.findViewById(R.id.tintPane);
@@ -577,10 +636,6 @@ public class ShowSatellites extends Activity {
 
 		if (station == null) {
 			station = new Telescope();
-		}
-
-		if (satellite == null) {
-			satellite = new Satellite();
 		}
 
 		// check to see if we have any files, if not get them
@@ -637,17 +692,9 @@ public class ShowSatellites extends Activity {
 		restoreValuesFromPreferences(prefs);
 		prefs.registerOnSharedPreferenceChangeListener(prefChangeListener);
 		updateOrientation(0, 0, 0, true, true);
+		
+		super.onCreate(savedInstanceState);
 
-		sensorManager.unregisterListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD));
-		sensorManager.unregisterListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
-		sensorManager.registerListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-				SensorManager.SENSOR_DELAY_GAME);
-		sensorManager.registerListener(sensorEventListener,
-				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-				SensorManager.SENSOR_DELAY_GAME);
 
 	}
 
@@ -707,12 +754,14 @@ public class ShowSatellites extends Activity {
 
 	private Runnable doBackgroundUpdate = new Runnable() {
 
+		@Override
 		public void run() {
-			updateSatPositions();
+			updateObjectPositions();
 		}
 	};
 
-	private void updateSatPositions() {
+	private void updateObjectPositions() {
+		
 		long lastRealTime = System.currentTimeMillis();
 		long lastSimTime = System.currentTimeMillis();
 		long currentSimTime = System.currentTimeMillis();
@@ -738,17 +787,27 @@ public class ShowSatellites extends Activity {
 						gettingTles = false;
 					}
 				}
+				if ( !forceLoadTle && selectedTle.compareTo(previousTle) != 0){
+					updateSatelliteTrack = true;
+					clearTargetString = true;
+					selectedSatelliteIndex = 0;
+				}
 				if (forceLoadTle || selectedTle.compareTo(previousTle) != 0) {
 					previousTle = new String(selectedTle);
 					loadTle(selectedTle);
 					forceLoadTle = false;
 					forceResetLocation = false;
+					updateSatelliteTrack = true;
+					//clearTargetString = true;
 				} else {
 
 					if (forceResetLocation) {
 						loadTle(selectedTle);
 						forceResetLocation = false;
+						updateSatelliteTrack = true;
+						clearTargetString = true;
 					}
+					
 					currentRealTime = System.currentTimeMillis();
 					diffTime = currentRealTime - lastRealTime;
 					currentSimTime = lastSimTime + selectedSpeed * diffTime;
@@ -765,6 +824,7 @@ public class ShowSatellites extends Activity {
 						station.SetUTanyTime(currentSimTime);
 					}
 					displayTime = currentSimTime;
+					displayTimeString = df.format(new Date(ShowSatellites.displayTime));
 					Satellite.showAllSats(null, station, satellitePositions);
 
 					// if satellite selection has changed, update the satellite
@@ -789,6 +849,8 @@ public class ShowSatellites extends Activity {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+				
+				//update star positions
 
 				handler.post(doUpdateGui);
 			}
@@ -796,17 +858,22 @@ public class ShowSatellites extends Activity {
 	}
 
 	private Runnable doUpdateSpinner = new Runnable() {
+		@Override
 		public void run() {
 			updateSpinner();
 		}
 	};
 
 	private Runnable doGetLocation = new Runnable() {
+		@Override
 		public void run() {
 			getLocation();
 		}
 	};
 
+	/**
+	 * Run once when loading a new TLE
+	 */
 	private void updateSpinner() {
 
 		if (satellitePositions != null && satellitePositions.size() > 0) {
@@ -816,19 +883,28 @@ public class ShowSatellites extends Activity {
 			satPosnsAdapter
 					.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 			satellites.setAdapter(satPosnsAdapter);
-			satellites.setSelection(0);
-			selectedSatPosn = (SatellitePosition) satellites.getSelectedItem();
+			
+			if (selectedTle.compareTo(previousTle) != 0 || selectedSatelliteIndex > satellites.getCount())
+			{
+				selectedSatelliteIndex = 0;
+			}
+			
+			updateSatelliteTrack = true;
+			satellites.setSelection(selectedSatelliteIndex);
+			selectedSatPosn = (SatellitePosition) satellites.getItemAtPosition(selectedSatelliteIndex);
 			satellites.invalidate();
 		}
 	}
 
 	private Runnable doEnableSpinner = new Runnable() {
+		@Override
 		public void run() {
 			enableSpinner();
 		}
 	};
 
 	private Runnable doDisableSpinner = new Runnable() {
+		@Override
 		public void run() {
 			disableSpinner();
 		}
@@ -843,6 +919,7 @@ public class ShowSatellites extends Activity {
 	}
 
 	private Runnable doUpdateGui = new Runnable() {
+		@Override
 		public void run() {
 			if (!loadingTle) {
 				updateGui();
@@ -855,16 +932,18 @@ public class ShowSatellites extends Activity {
 	private void updateGui() {
 		currentHeight = getWindowManager().getDefaultDisplay().getHeight();
 		currentWidth = getWindowManager().getDefaultDisplay().getWidth();
-		int selection = satellites.getSelectedItemPosition();
+		
+		selectedSatelliteIndex = satellites.getSelectedItemPosition();
 		satellites.setAdapter(satPosnsAdapter);
-		if (!loadingTle && selection != AdapterView.INVALID_POSITION
-				&& selection < satellites.getCount()) {
-			satellites.setSelection(selection);
-			selectedSatPosn = (SatellitePosition) satellites.getSelectedItem();
-			if (selection != prevSatelliteSelection) {
+		
+		if (!loadingTle && selectedSatelliteIndex != AdapterView.INVALID_POSITION
+				&& selectedSatelliteIndex < satellites.getCount()) {
+			satellites.setSelection(selectedSatelliteIndex);
+			selectedSatPosn = (SatellitePosition) satellites.getItemAtPosition(selectedSatelliteIndex);
+			if (selectedSatelliteIndex != prevSatelliteSelection) {
 				updateSatelliteTrack = true;
 			}
-			prevSatelliteSelection = selection;
+			prevSatelliteSelection = selectedSatelliteIndex;
 		}
 		if (nightVis) {
 			if (currentHeight != prevHeight && currentWidth != prevWidth) {
@@ -977,6 +1056,7 @@ public class ShowSatellites extends Activity {
 
 	private class SatellitePositionComparator implements
 			Comparator<SatellitePosition> {
+		@Override
 		public int compare(SatellitePosition s1, SatellitePosition s2) {
 
 			return s1.toString().compareTo(s2.toString());
@@ -1006,12 +1086,6 @@ public class ShowSatellites extends Activity {
 		station.Init();
 		station.SetUTSystem();
 
-		/*
-		 * if (manualLocation) { lat = manualLat; lon = manualLon; alt = 0; }
-		 * else { handler.post(doGetLocation); if (null != mLocation) { lat =
-		 * mLocation.getLatitude(); lon = mLocation.getLongitude(); alt =
-		 * mLocation.getAltitude(); } }
-		 */
 		handler.post(doGetLocation);
 
 		latitude = (int) lat;
@@ -1019,7 +1093,6 @@ public class ShowSatellites extends Activity {
 
 		station.SetGeodetic("Vancouver", lon / Hmelib.DEGPERRAD, lat
 				/ Hmelib.DEGPERRAD, alt / 1000000000);
-		satellite.Init();
 
 		loadingTle = true;
 		try {
@@ -1059,6 +1132,7 @@ public class ShowSatellites extends Activity {
 				tleSubMenu.add(0, Menu.FIRST + i, Menu.NONE, tle)
 						.setOnMenuItemClickListener(
 								new OnMenuItemClickListener() {
+									@Override
 									public boolean onMenuItemClick(MenuItem m) {
 										selectedTle = m.getTitle().toString();
 										stereoView.invalidate();
@@ -1072,6 +1146,7 @@ public class ShowSatellites extends Activity {
 					|| (availTles != null && availTles.length == 0)) {
 				tleMenuItem
 						.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+							@Override
 							public boolean onMenuItemClick(MenuItem m) {
 
 								Toast msg = Toast
@@ -1088,6 +1163,7 @@ public class ShowSatellites extends Activity {
 			// SD Card not connected or USB Storage in use
 			tleMenuItem
 					.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+						@Override
 						public boolean onMenuItemClick(MenuItem m) {
 
 							Toast msg = Toast
@@ -1123,6 +1199,7 @@ public class ShowSatellites extends Activity {
 
 		menuItemLocation
 				.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+					@Override
 					public boolean onMenuItemClick(MenuItem m) {
 
 						forceLoadTle = true;
@@ -1131,8 +1208,9 @@ public class ShowSatellites extends Activity {
 					}
 				});
 		;
-
+		
 		menuItemData.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			@Override
 			public boolean onMenuItemClick(MenuItem m) {
 
 				try {
@@ -1172,6 +1250,7 @@ public class ShowSatellites extends Activity {
 
 		editPreference
 				.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+					@Override
 					public boolean onMenuItemClick(MenuItem m) {
 						startActivity(new Intent(getBaseContext(),
 								EditPreferences.class));
@@ -1185,6 +1264,7 @@ public class ShowSatellites extends Activity {
 
 			speedMenu.add(groupId, Menu.FIRST + i, Menu.NONE, speed)
 					.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+						@Override
 						public boolean onMenuItemClick(MenuItem m) {
 							selectedSpeed = Integer.valueOf(
 									m.getTitle().toString()).intValue();
