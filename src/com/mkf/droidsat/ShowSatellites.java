@@ -105,12 +105,12 @@ public class ShowSatellites extends Activity {
 	/* list of celestrak TLEs */
 	private static final String[] celestrakTles = { "tle-new", "stations",
 			"visual", "1999-025", "iridium-33-debris", "cosmos-2251-debris",
-			"weather", "noaa", "goes", "resource", "sarsat", "dmc", "tdrss",
-			"geo", "intelsat", "gorizont", "raduga", "molniya", "iridium",
-			"orbcomm", "globalstar", "amateur", "x-comm", "other-comm",
-			"gps-ops", "glo-ops", "galileo", "sbas", "nnss", "musson",
-			"science", "geodetic", "engineering", "military", "radar",
-			"cubesat", "other" };
+			"2012-044", "weather", "noaa", "goes", "resource", "sarsat",
+			"dmc", "tdrss", "geo", "intelsat", "gorizont", "raduga", "molniya",
+			"iridium", "orbcomm", "globalstar", "amateur", "x-comm",
+			"other-comm", "gps-ops", "glo-ops", "galileo", "sbas", "nnss",
+			"musson", "science", "geodetic", "engineering", "military",
+			"radar", "cubesat", "other" };
 	private static String availTles[] = { "" };
 	private static File tleDir;
 	private static byte[] tleBuf = new byte[8192];
@@ -659,11 +659,6 @@ public class ShowSatellites extends Activity {
 			satPosUpdateThread.start();
 		}
 
-		/*
-		 * if (!satellitePositions.isEmpty()){ Satellite.showAllSats(null,
-		 * station, satellitePositions);//orientation change causing bug }
-		 */
-
 		updateSpinner();
 
 		currentHeight = getWindowManager().getDefaultDisplay().getHeight();
@@ -678,7 +673,7 @@ public class ShowSatellites extends Activity {
 		tintBitmap2.eraseColor(Color.RED);
 		tintPane.setImageBitmap(tintBitmap1);
 		tintPane.setAlpha(0);
-		ShowSatellites.instance = this.getApplicationContext();//
+		ShowSatellites.instance = this.getApplicationContext();
 
 		if (VERSION.SDK_INT < 8) {
 			StereoView.segmentsPerLine = 2;
@@ -693,9 +688,13 @@ public class ShowSatellites extends Activity {
 		prefs.registerOnSharedPreferenceChangeListener(prefChangeListener);
 		updateOrientation(0, 0, 0, true, true);
 		
-		super.onCreate(savedInstanceState);
-
-
+		if (null != savedInstanceState) {
+			selectedTle = savedInstanceState.getString("selectedTle");
+			previousTle = selectedTle;
+			selectedSatelliteIndex = savedInstanceState
+					.getInt("selectedSatelliteIndex");
+			updateSatelliteTrack = true;
+		}
 	}
 
 	private void getLocation() {

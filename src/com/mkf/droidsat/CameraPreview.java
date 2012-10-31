@@ -71,9 +71,11 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 			mCamera.setPreviewDisplay(holder);
 			
 		} catch (Exception exception) {
-			mCamera.release();
-			this.inPreview=false;
-			mCamera = null;
+			if (null != mCamera) {
+				mCamera.release();
+				this.inPreview = false;
+				mCamera = null;
+			}
 		}
 
 	}
@@ -83,8 +85,10 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
         // Because the CameraDevice object is not a shared resource, it's very
         // important to release it when the activity is paused.
         this.turnOff();
-        mCamera.release();
-        mCamera = null;
+        if (null != mCamera) {
+			mCamera.release();
+			mCamera = null;
+		}
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {

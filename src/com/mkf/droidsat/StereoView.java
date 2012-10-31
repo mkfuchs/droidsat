@@ -82,9 +82,6 @@ public class StereoView extends View {
 
 	public static volatile int trackballSpeed = 2;
 	public static volatile float textSize = 16;
-	/*private static java.text.DateFormat df = java.text.DateFormat
-			.getTimeInstance();
-	private static String displayTimeString;*/
 
 	private class Coord {
 		float x;
