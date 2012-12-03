@@ -98,7 +98,7 @@ public class ShowSatellites extends Activity {
 	public static volatile boolean updateSatelliteTrack = false;
 	private Resources droidSatResources = null;
 	private InputStream satFileStream = null;
-	private ArrayAdapter<SatellitePosition> satPosnsAdapter;
+	private SatelliteArrayAdapter satPosnsAdapter;
 	private Handler handler = new Handler();
 	public volatile static boolean orientationLocked = false;
 	public static volatile SatellitePosition selectedSatPosn = null;
@@ -877,7 +877,7 @@ public class ShowSatellites extends Activity {
 
 		if (satellitePositions != null && satellitePositions.size() > 0) {
 
-			satPosnsAdapter = new ArrayAdapter<SatellitePosition>(this,
+			satPosnsAdapter = new SatelliteArrayAdapter(this,
 					android.R.layout.simple_spinner_item, satellitePositions);
 			satPosnsAdapter
 					.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -1391,6 +1391,27 @@ public class ShowSatellites extends Activity {
 			return true;
 		}
 		return false;
+	}
+	
+	private class SatelliteArrayAdapter extends ArrayAdapter<SatellitePosition>
+	{
+
+		public SatelliteArrayAdapter(Context context, int textViewResourceId, ArrayList<SatellitePosition> positions) {
+			super(context, textViewResourceId, positions);
+		}
+
+		@Override
+		public SatellitePosition getItem(int position) {
+			if (position < super.getCount())
+			{
+				return (SatellitePosition)super.getItem(position);
+			}
+			else{
+				Log.e("spinner","out of synch");
+				return new SatellitePosition();
+			}
+		}
+		
 	}
 
 }

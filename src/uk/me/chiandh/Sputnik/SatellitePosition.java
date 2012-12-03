@@ -35,6 +35,22 @@ public class SatellitePosition {
 		
 	}
 	
+	public SatellitePosition(){
+		name = "";
+		displayString = new StringBuffer("");
+		azimuth = 0;
+		azRadians = 0;
+		elevation = 0;
+		elRadians = 0;
+		range = 0;
+		sat = new Satellite();
+		inclination = 0;
+		apogee = 0;
+		perigee = 0;
+		period = 0;
+		
+	}
+	
 	public String toString(){
 		return this.displayString.toString();
 	}
