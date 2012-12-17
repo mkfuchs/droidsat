@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<color name="sat_color">#cc2200</color>
 <color name="text_color">#FFFF</color>
-<color name="red_color">#ff0000</color>
-<color name="white_color">#FFFFFF</color>
-<color name="black_color">#000000</color>
-<color name="blue_color">#0000FF</color>
-<color name="green_color">#00C000</color>
 </resources>

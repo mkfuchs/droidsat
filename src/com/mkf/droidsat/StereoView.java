@@ -41,7 +41,7 @@ public class StereoView extends View {
 	public static int semiWidthDegrees = 90;
 	public static int semiHeightDegrees = 45;
 	private int reticleRadius = 15;
-	private int targetRadius = 1;
+	public static volatile int targetRadius = 1;
 	static volatile double projectionRadius = 480;
 	static volatile double prevProjectionRadius = 0;
 	public volatile boolean updatingDisplay = false;
@@ -127,8 +127,8 @@ public class StereoView extends View {
 
 	private void updatePitchRadians() {
 		pitchRadians = (float) Math.toRadians(pitch);
-		cosTheta1 = android.util.FloatMath.cos(pitchRadians);
-		sinTheta1 = android.util.FloatMath.sin(pitchRadians);
+		cosTheta1 = java.lang.Math.cos(pitchRadians);
+		sinTheta1 = java.lang.Math.sin(pitchRadians);
 	}
 
 	public float getPitch() {
@@ -262,6 +262,14 @@ public class StereoView extends View {
 		}
 
 		updatingDisplay = true;
+		
+		drawHorizonLabels(canvas, displayHeight, displayWidth);
+		drawMeridanLabels(canvas, displayHeight, displayWidth);
+
+		if (displayAltAzGrid) {
+			drawLats(canvas, displayHeight, displayWidth);
+			drawLons(canvas, displayHeight, displayWidth);
+		}
 
 		if (!ShowSatellites.loadingTle
 				&& ShowSatellites.satellitePositions != null
@@ -328,13 +336,12 @@ public class StereoView extends View {
 								targetPaint = notSunlitPaint;
 							}
 							if (satPos == ShowSatellites.selectedSatPosn) {
-								targetRadius = 4;
-							} else
-								targetRadius = 2;
-
-							canvas.drawCircle(stereoCoord.x, stereoCoord.y,
-									targetRadius, targetPaint);
-
+								canvas.drawCircle(stereoCoord.x, stereoCoord.y,
+										targetRadius * 2, targetPaint);
+							} else {
+								canvas.drawCircle(stereoCoord.x, stereoCoord.y,
+										targetRadius, targetPaint);
+							}
 						}
 					}
 
@@ -353,16 +360,16 @@ public class StereoView extends View {
 								&& !(satPos.sat.itsIsSunlit != 1 && !displayDarkSats)) {
 
 							if (j == 0) { // filled box for orbit start
-								canvas.drawRect(stereoCoord.x - 3,
-										stereoCoord.y - 3, stereoCoord.x + 3,
-										stereoCoord.y + 3, sunlitPaint);
+								canvas.drawRect(stereoCoord.x - targetRadius,
+										stereoCoord.y - targetRadius, stereoCoord.x + targetRadius,
+										stereoCoord.y + targetRadius, sunlitPaint);
 								prevCoord.x = stereoCoord.x;
 								prevCoord.y = stereoCoord.y;
 							} else if (j == endPoint) { // empty box for orbit
 														// end
-								canvas.drawRect(stereoCoord.x - 3,
-										stereoCoord.y - 3, stereoCoord.x + 3,
-										stereoCoord.y + 3, notSunlitPaint);
+								canvas.drawRect(stereoCoord.x - targetRadius,
+										stereoCoord.y - targetRadius, stereoCoord.x + targetRadius,
+										stereoCoord.y + targetRadius, notSunlitPaint);
 							}
 							// both orbit segments are in the display do draw it
 							if (j > 0
@@ -445,14 +452,6 @@ public class StereoView extends View {
 
 		}
 
-		drawHorizonLabels(canvas, displayHeight, displayWidth);
-		drawMeridanLabels(canvas, displayHeight, displayWidth);
-
-		if (displayAltAzGrid) {
-			drawLats(canvas, displayHeight, displayWidth);
-			drawLons(canvas, displayHeight, displayWidth);
-		}
-
 		updatingDisplay = false;
 
 	}
@@ -464,7 +463,7 @@ public class StereoView extends View {
 		for (int lon = 0; lon < radianLons.length; lon += lonIncrement) {
 			stereoProjRad(headingRadians, pitchRadians, radianLons[lon], 0.0,
 					stereoCoord);
-			canvas.drawText(lonLabels[lon], stereoCoord.x, stereoCoord.y
+			canvas.drawText(lonLabels[lon], stereoCoord.x + targetRadius / 2, stereoCoord.y
 					- textHeight, textPaint);
 		}
 	}
@@ -487,7 +486,7 @@ public class StereoView extends View {
 				if (lat != horizonLat) {
 					stereoProjRad(headingRadians, pitchRadians,
 							radianLons[lon], radianLats[lat], stereoCoord);
-					canvas.drawText(latLabels[lat], stereoCoord.x,
+					canvas.drawText(latLabels[lat], stereoCoord.x + targetRadius / 2,
 							stereoCoord.y - textHeight, textPaint);
 				}
 			}

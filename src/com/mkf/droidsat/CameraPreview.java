@@ -65,9 +65,9 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 	public void surfaceCreated(SurfaceHolder holder) {
 		// The Surface has been created, acquire the camera and tell it where
 		// to draw.
-		mCamera = Camera.open();
+		
 		try {
-			
+			mCamera = Camera.open();
 			mCamera.setPreviewDisplay(holder);
 			
 		} catch (Exception exception) {
@@ -185,7 +185,10 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 				Log.d(this.getClass().getName(),"Exception getting view angle");;
 			}
 		}
-		return myViewAngle;
+		if (myViewAngle > 10 && myViewAngle < 90)
+			return myViewAngle;
+		else
+			return 37.5f;
 	}
 	
 	private String getScreenOrientation(){

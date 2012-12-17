@@ -260,6 +260,27 @@ public class ShowSatellites extends Activity {
 
 			StereoView.textHeight = (int) StereoView.textSize;
 		}
+		
+		else if (key.equals("lineThickness")) {
+			String lineThickness = sharedPreferences.getString(key, "medium");
+			if (lineThickness.equals("small")) {
+				StereoView.latLonPaint.setStrokeWidth(0);
+				StereoView.sunlitPaint.setStrokeWidth(0);
+				StereoView.notSunlitPaint.setStrokeWidth(0);
+				StereoView.targetRadius = 2;
+			} else if (lineThickness.equals("medium")) {
+				StereoView.latLonPaint.setStrokeWidth(3);
+				StereoView.sunlitPaint.setStrokeWidth(3);
+				StereoView.notSunlitPaint.setStrokeWidth(3);
+				StereoView.targetRadius = 4;
+			} else if (lineThickness.equals("large")) {
+				StereoView.latLonPaint.setStrokeWidth(5);
+				StereoView.sunlitPaint.setStrokeWidth(5);
+				StereoView.notSunlitPaint.setStrokeWidth(5);
+				StereoView.targetRadius = 6;
+			}
+
+		}
 
 		else if (key.equals("altAzGridSize") || key.equals("altAzSmoothing")) {
 			StereoView.latDisplayDegrees = Integer.valueOf(sharedPreferences
@@ -958,11 +979,15 @@ public class ShowSatellites extends Activity {
 			if (resetVideoProjectionRadius
 					|| (this.cameraPreview != null
 							&& !this.cameraPreview.inPreview && !fullSky)) {
-				resetVideoProjectionRadius = false;
 				this.cameraPreview.turnOn();
-				StereoView.projectionRadius = Math.max(stereoView.getWidth(),
+				double videoProjectionRadius = Math.max(stereoView.getWidth(),
 						stereoView.getHeight())
-						/ Math.tan(Math.toRadians(cameraPreview.viewAngle));
+						/ Math.tan(Math.toRadians(cameraPreview.getViewAngle()));
+				if (videoProjectionRadius != 0) {
+					StereoView.projectionRadius = videoProjectionRadius;
+					resetVideoProjectionRadius = false;
+				}
+				
 			} else if (this.cameraPreview != null && fullSky
 					&& this.cameraPreview.inPreview) {
 				this.cameraPreview.turnOff();

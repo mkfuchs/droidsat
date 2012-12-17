@@ -26,7 +26,7 @@
 		<ListPreference android:entries="@array/textSizes"
 			android:summary="text size" android:key="textSize"
 			android:entryValues="@array/textSizes" android:defaultValue="medium"></ListPreference>
-		<ListPreference android:entries="@array/forgroundColors"
+		<ListPreference android:summary="line thickness" android:key="lineThickness" android:entries="@array/textSizes" android:defaultValue="medium" android:entryValues="@array/textSizes" /><ListPreference android:entries="@array/forgroundColors"
 			android:summary="text colour" android:key="textColor"
 			android:entryValues="@array/forgroundColors" android:defaultValue="green"></ListPreference>
 		<ListPreference android:entries="@array/forgroundColors"
@@ -40,6 +40,7 @@
 			android:entryValues="@array/smoothing" android:summary="alt/az grid quality" android:defaultValue="medium" android:dependency="altAzOn"></ListPreference>
 		<ListPreference android:entries="@array/smoothing"
 			android:entryValues="@array/smoothing" android:summary="orientation sensor and compass sensitivity" android:defaultValue="high" android:key="sensorSensitivity"></ListPreference>
+		
 	
 </PreferenceCategory>
 
