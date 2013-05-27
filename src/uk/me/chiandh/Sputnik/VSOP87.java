@@ -304,27 +304,27 @@ Calculate the heliocentric distance in Gm from the VSPO87 polynomial.
     theTau = (aTime.GetJDE() - 1545.) / 365250.;
 
     theR0 = 0.;
-    for (i = 0; 0. < aR0[3*i]; i++) {
+    for (i = 0; 3*i+2 < aR0.length; i++) {
       theR0 += aR0[3*i] * Math.cos(aR0[3*i+1] + aR0[3*i+2] * theTau);
     }
     theR1 = 0.;
-    for (i = 0; 0. < aR1[3*i]; i++) {
+    for (i = 0; 3*i+2 < aR1.length; i++) {
       theR1 += aR1[3*i] * Math.cos(aR1[3*i+1] + aR1[3*i+2] * theTau);
     }
     theR2 = 0.;
-    for (i = 0; 0. < aR2[3*i]; i++) {
+    for (i = 0; 3*i+2 < aR2.length; i++) {
       theR2 += aR2[3*i] * Math.cos(aR2[3*i+1] + aR2[3*i+2] * theTau);
     }
     theR3 = 0.;
-    for (i = 0; 0. < aR3[3*i]; i++) {
+    for (i = 0; 3*i+2 < aR3.length; i++) {
       theR3 += aR3[3*i] * Math.cos(aR3[3*i+1] + aR3[3*i+2] * theTau);
     }
     theR4 = 0.;
-    for (i = 0; 0. < aR4[3*i]; i++) {
+    for (i = 0; 3*i+2 < aR4.length; i++) {
       theR4 += aR4[3*i] * Math.cos(aR4[3*i+1] + aR4[3*i+2] * theTau);
     }
     theR5 = 0.;
-    for (i = 0; 0. < aR5[3*i]; i++) {
+    for (i = 0; 3*i+2 < aR5.length; i++) {
       theR5 += aR5[3*i] * Math.cos(aR5[3*i+1] + aR5[3*i+2] * theTau);
     }
 
@@ -451,27 +451,27 @@ Calculate the heliocentric latitude in rad from the VSPO87 polynomial.
     theTau = (aTime.GetJDE() - 1545.) / 365250.;
 
     theB0 = 0.;
-    for (i = 0; 0. < aB0[3*i]; i++) {
+    for (i = 0; 3*i+2 < aB0.length; i++) {
       theB0 += aB0[3*i] * Math.cos(aB0[3*i+1] + aB0[3*i+2] * theTau);
     }
     theB1 = 0.;
-    for (i = 0; 0. < aB1[3*i]; i++) {
+    for (i = 0; 3*i+2 < aB1.length; i++) {
       theB1 += aB1[3*i] * Math.cos(aB1[3*i+1] + aB1[3*i+2] * theTau);
     }
     theB2 = 0.;
-    for (i = 0; 0. < aB2[3*i]; i++) {
+    for (i = 0; 3*i+2 < aB2.length; i++) {
       theB2 += aB2[3*i] * Math.cos(aB2[3*i+1] + aB2[3*i+2] * theTau);
     }
     theB3 = 0.;
-    for (i = 0; 0. < aB3[3*i]; i++) {
+    for (i = 0; 3*i+2 < aB3.length; i++) {
       theB3 += aB3[3*i] * Math.cos(aB3[3*i+1] + aB3[3*i+2] * theTau);
     }
     theB4 = 0.;
-    for (i = 0; 0. < aB4[3*i]; i++) {
+    for (i = 0; 3*i+2 < aB4.length; i++) {
       theB4 += aB4[3*i] * Math.cos(aB4[3*i+1] + aB4[3*i+2] * theTau);
     }
     theB5 = 0.;
-    for (i = 0; 0. < aB5[3*i]; i++) {
+    for (i = 0; 3*i+2 < aB5.length; i++) {
       theB5 += aB5[3*i] * Math.cos(aB5[3*i+1] + aB5[3*i+2] * theTau);
     }
 
@@ -521,27 +521,27 @@ Calculate the heliocentric longitude in rad from the VSPO87 polynomial.
     theTau = (aTime.GetJDE() - 1545.) / 365250.;
 
     theL0 = 0.;
-    for (i = 0; 0. < aL0[3*i]; i++) {
+    for (i = 0; 3*i+2 < aL0.length; i++) {
       theL0 += aL0[3*i] * Math.cos(aL0[3*i+1] + aL0[3*i+2] * theTau);
     }
     theL1 = 0.;
-    for (i = 0; 0. < aL1[3*i]; i++) {
+    for (i = 0; 3*i+2 < aL1.length; i++) {
       theL1 += aL1[3*i] * Math.cos(aL1[3*i+1] + aL1[3*i+2] * theTau);
     }
     theL2 = 0.;
-    for (i = 0; 0. < aL2[3*i]; i++) {
+    for (i = 0; 3*i+2 < aL2.length; i++) {
       theL2 += aL2[3*i] * Math.cos(aL2[3*i+1] + aL2[3*i+2] * theTau);
     }
     theL3 = 0.;
-    for (i = 0; 0. < aL3[3*i]; i++) {
+    for (i = 0; 3*i+2 < aL3.length; i++) {
       theL3 += aL3[3*i] * Math.cos(aL3[3*i+1] + aL3[3*i+2] * theTau);
     }
     theL4 = 0.;
-    for (i = 0; 0. < aL4[3*i]; i++) {
+    for (i = 0; 3*i+2 < aL4.length; i++) {
       theL4 += aL4[3*i] * Math.cos(aL4[3*i+1] + aL4[3*i+2] * theTau);
     }
     theL5 = 0.;
-    for (i = 0; 0. < aL5[3*i]; i++) {
+    for (i = 0; 3*i+2 < aL5.length; i++) {
       theL5 += aL5[3*i] * Math.cos(aL5[3*i+1] + aL5[3*i+2] * theTau);
     }
 

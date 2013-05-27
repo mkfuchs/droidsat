@@ -853,7 +853,8 @@ public class ShowSatellites extends Activity {
 					if (StereoView.displaySatelliteTrack
 							&& updateSatelliteTrack) {
 						if (null != selectedSatPosn
-								&& null != selectedSatPosn.sat) {
+								&& null != selectedSatPosn.sat
+								&& null != station) {
 							satelliteTrack = new SatelliteTrack(
 									selectedSatPosn.sat, station, displayTime);
 							updateSatelliteTrack = false;
