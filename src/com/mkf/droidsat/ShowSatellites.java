@@ -1344,7 +1344,7 @@ public class ShowSatellites extends Activity {
 
 			// mike mccant's classified satellite tle
 			URL mcCantUrl = new URL(
-					"http://www.prismnet.com/~mmccants/tles/classfd.zip");
+					"https://www.prismnet.com/~mmccants/tles/classfd.zip");
 			is = mcCantUrl.openStream();
 
 			fos = new FileOutputStream(new File(tleDir, "classfd.zip"));
