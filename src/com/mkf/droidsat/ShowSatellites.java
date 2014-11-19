@@ -110,7 +110,9 @@ public class ShowSatellites extends Activity {
 			"iridium", "orbcomm", "globalstar", "amateur", "x-comm",
 			"other-comm", "gps-ops", "glo-ops", "galileo", "sbas", "nnss",
 			"musson", "science", "geodetic", "engineering", "military",
-			"radar", "cubesat", "other" };
+			"radar", "cubesat", "other", "supplemental/gps","supplemental/glonass",
+			"supplemental/meteosat","supplemental/intelsat","supplemental/ses",
+			"supplemental/orbcomm"};
 	private static String availTles[] = { "" };
 	private static File tleDir;
 	private static byte[] tleBuf = new byte[8192];
@@ -1314,12 +1316,12 @@ public class ShowSatellites extends Activity {
 			for (String tle : celestrakTles) {
 
 				URL satDataUrl = new URL(prefix + tle + ".txt");
-				Log.d(this.getClass().getName(), "gettting file " + satDataUrl);
+				Log.d(this.getClass().getName(), "getting file " + satDataUrl);
 
 				InputStream is = satDataUrl.openStream();
 
 				FileOutputStream fos = new FileOutputStream(new File(tleDir,
-						tle + ".txt"));
+						tle.replace("supplemental/", "sup-") + ".txt"));
 				int len;
 				while ((len = is.read(tleBuf)) > 0) {
 					fos.write(tleBuf, 0, len);
