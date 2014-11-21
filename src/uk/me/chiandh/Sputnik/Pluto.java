@@ -741,8 +741,8 @@ will previously have been calculated by this class.</p>
     double theBeta;
     double thePA;
     double theCM;
-    double ra, rb, theRA1, theDec1, theW, theD, theT, theA;
-    int    j;
+    double ra, rb, theRA1, theDec1, theW, theD;
+    
 
     /* Get the position of the Sun and of this planet, geocentric J2000. */
 
@@ -752,7 +752,7 @@ will previously have been calculated by this class.</p>
     /* The time parameters as used below. */
 
     theD = aTelescope.GetJDE() - 1545.;
-    theT = theD / 36525.;
+    
 
     /* The vector from Sun to planet, used for the phase angle.
      * Initially theElong and thePhase are positive, and that is used
@@ -763,7 +763,6 @@ will previously have been calculated by this class.</p>
     aTriplet[2] = theR[2] - theSunPos[2];
     theElong = Hmelib.SpherDist(theR, theSunPos);
     thePhase = Hmelib.SpherDist(theR, aTriplet);
-    theA = thePhase * Hmelib.DEGPERRAD / 100.;
     if (theSunPos[1] * theR[0] > theSunPos[0] * theR[1]) {
       theElong *= -1.; thePhase *= -1.;
     }

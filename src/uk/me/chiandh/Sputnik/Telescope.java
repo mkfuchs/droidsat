@@ -576,7 +576,7 @@ Iridium flares from file: /home/hme/lib/sats/iridium.txt
     Telescope      theScope  = new Telescope();
     Satellite[]    theSatellite;
     BufferedReader theFile;
-    String         theString, theFileName, theLine;
+    String         theString, theFileName;
     double         theStart, theStep, theEnd, theJD;
     int            theNstep, theNsat;
     int            inFlare[], wasInFlare[];
@@ -613,7 +613,7 @@ Iridium flares from file: /home/hme/lib/sats/iridium.txt
 
     theFile = new BufferedReader(new FileReader(theFileName));
     for (theNsat = 0; ; theNsat++) {
-      if ((theLine = theFile.readLine()) == null) break;
+      if ((theFile.readLine()) == null) break;
     }
     theNsat = (int) Math.floor((double) theNsat / 3.);
     theFile.close();
@@ -1217,7 +1217,6 @@ Serve various <code>whatever/show</code> commands.
            StationException, SDP4Exception, HmelibException, IOException
   {
     BufferedReader theFile;
-    String         theLine;
     PrintStream theXhtml, theWml;
     Telescope   theScope;
     Satellite[] theSatellite;
@@ -1260,7 +1259,7 @@ Serve various <code>whatever/show</code> commands.
 
     theFile = new BufferedReader(new FileReader("data/iridium.txt"));
     for (theNsat = 0; ; theNsat++) {
-      if ((theLine = theFile.readLine()) == null) break;
+      if ((theFile.readLine()) == null) break;
     }
     theNsat = (int) Math.floor((double) theNsat / 3.);
     theFile.close();
@@ -2800,7 +2799,6 @@ AU values (+2, +4, +6, +8 Gm).</p>
   {
     String      theOutput = "";
     double      thea[]    = new double[3];     /* topocentre */
-    double      theA[]    = new double[3];     /* topocentre */
     double      thex[]    = new double[3];     /* Sun */
     double      theX[]    = new double[3];     /* Venus */
     double      thext[]   = new double[3];

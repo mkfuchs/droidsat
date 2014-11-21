@@ -1183,7 +1183,6 @@ public class SDP4
   {
     BufferedReader theFile;
     String  theLine, theName;
-    int     i;
     boolean success = false;
 
     /* Trim the given name. */
@@ -1252,7 +1251,7 @@ AAAAAAAAAAAAAAAAAAAAAA
     throws SDP4NoLineOneException, SDP4InvalidNumException, IOException
   {
     String  theLine;
-    int     i;
+    
 
     /* Read the line with the satellite name. */
 

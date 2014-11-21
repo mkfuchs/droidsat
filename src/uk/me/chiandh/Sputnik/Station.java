@@ -166,7 +166,6 @@ public class Station extends Times
   public void CommandRead(String aCommand)
     throws StationNotFoundException, HmelibException, IOException
   {
-    BufferedReader theFile;
     String  theString;
     String  theFileName;
     String  theName;

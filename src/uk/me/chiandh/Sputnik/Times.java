@@ -275,7 +275,7 @@ public class Times
   public final double GetGST()
   {
     double hr, ts;
-    double t1, t2, t3, t4;
+    double t1, t2, t3;
 
     /* t1 is the previous midnight in Julian centuries from J2000.
      * t2 adds up the contributions to sidereal time in units of hours.

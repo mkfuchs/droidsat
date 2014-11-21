@@ -3,9 +3,6 @@ package uk.me.chiandh.Sputnik;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
 import uk.me.chiandh.Lib.SDP4;
 import uk.me.chiandh.Lib.SDP4Exception;
 import uk.me.chiandh.Lib.Hmelib;
@@ -775,7 +772,7 @@ static double theSunPos[] = {0.,0.,0.};
     double ZZ[] = new double[3];
     double TT[] = new double[3];
     double NTT[] = new double[3];
-    double SUN_REF_X, SUN_REF_Y, SUN_REF_Z, SUN_REF_ALPHA, SUN_REF_DELTA;
+    double SUN_REF_X, SUN_REF_Y, SUN_REF_Z;
     double SUN_REF_ANG;
     double TEMP;
     double t1[] = new double[3];

@@ -604,7 +604,7 @@ public class Venus extends VSOP87
     double theBeta;
     double thePA;
     double theCM;
-    double ra, rb, theRA1, theDec1, theW, theD, theT, theA;
+    double ra, rb, theRA1, theDec1, theW, theD, theA;
 
     /* Get the position of the Sun and of this planet, geocentric J2000. */
 
@@ -614,7 +614,7 @@ public class Venus extends VSOP87
     /* The time parameters as used below. */
 
     theD = aTelescope.GetJDE() - 1545.;
-    theT = theD / 36525.;
+    
 
     /* The vector from Sun to Moon, used for the phase angle.
      * Initially theElong and thePhase are positive, and that is used

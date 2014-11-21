@@ -738,7 +738,6 @@ public class Sun extends VSOP87
   public final void GetPhysics(double aOctet[], Telescope aTelescope)
   {
     double theSpher[] = new double[3];
-    double aTriplet[] = new double[3];
     double theR[]     = new double[3];
     double theElong;
     double thePhase;

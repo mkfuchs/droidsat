@@ -672,7 +672,7 @@ public class Neptune extends VSOP87
     double theBeta;
     double thePA;
     double theCM;
-    double ra, rb, theRA1, theDec1, theW, theD, theT, theA, theN;
+    double ra, rb, theRA1, theDec1, theW, theD, theT, theN;
 
     /* Get the position of the Sun and of this planet, geocentric J2000. */
 
@@ -693,7 +693,6 @@ public class Neptune extends VSOP87
     aTriplet[2] = theR[2] - theSunPos[2];
     theElong = Hmelib.SpherDist(theR, theSunPos);
     thePhase = Hmelib.SpherDist(theR, aTriplet);
-    theA = thePhase * Hmelib.DEGPERRAD / 100.;
     if (theSunPos[1] * theR[0] > theSunPos[0] * theR[1]) {
       theElong *= -1.; thePhase *= -1.;
     }
